@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 
-namespace e_commerce_website.Models
+namespace FabstoreWebApplication.ViewModels
     {
-    public class User
+    public class UserView
         {
-        [Key]
+
         public int UserID { get; set; }
 
         [StringLength(100)]
@@ -27,12 +27,12 @@ namespace e_commerce_website.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        public ICollection<Cart> Carts { get; set; } = new List<Cart>();
-        public ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+        public ICollection<CartView> Carts { get; set; } = new List<CartView>();
+        public ICollection<WishlistView> Wishlists { get; set; } = new List<WishlistView>();
 
-        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<ReviewView> Reviews { get; set; } = new List<ReviewView>();
 
-        public ICollection<Order> Orders { get; set; } = new List<Order>();
+        public ICollection<OrderView> Orders { get; set; } = new List<OrderView>();
 
         }
 

@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-namespace e_commerce_website.Helpers
+namespace FabstoreWebApplication.Helpers
     {
     public sealed class JsonHelper
         {

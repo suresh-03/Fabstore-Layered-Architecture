@@ -1,21 +1,23 @@
-using e_commerce_website.Database;
-using e_commerce_website.Models;
-using e_commerce_website.Models.product;
+using AutoMapper;
+using Fabstore.Domain.Interfaces.IProduct;
+using FabstoreWebApplication.ViewModels;
+using FabstoreWebAppliction.ViewModels.Product;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
-namespace e_commerce_website.Controllers;
+namespace FabstoreWebApplication.Controllers;
 
 public class ProductController : Controller
     {
     private readonly ILogger<ProductController> _logger;
-    private readonly AppDbContext _context;
+    private readonly IProductService _productService;
+    private readonly IMapper _mapper;
 
-    public ProductController(ILogger<ProductController> logger, AppDbContext context)
+    public ProductController(ILogger<ProductController> logger, IProductService productService, IMapper mapper)
         {
         _logger = logger;
-        _context = context;
+        _productService = productService;
+        _mapper = mapper;
         }
 
     [HttpGet]
@@ -23,33 +25,10 @@ public class ProductController : Controller
         {
         try
             {
-            List<Product> products;
 
-            if (string.IsNullOrEmpty(category))
-                {
-                // If no category provided, return all products
-                products = await _context.Products
-                    .Include(p => p.Brand)
-                    .Include(p => p.Category)
-                    .Include(p => p.Variants)
-                        .ThenInclude(v => v.Images)
-                    .ToListAsync();
-
-                _logger.LogInformation($"Fetched all products. Count: {products.Count}");
-                }
-            else
-                {
-                // Filter products by category name
-                products = await _context.Products
-                    .Include(p => p.Brand)
-                    .Include(p => p.Category)
-                    .Include(p => p.Variants)
-                        .ThenInclude(v => v.Images)
-                    .Where(p => p.Category.CategoryName == category)
-                    .ToListAsync();
-
-                _logger.LogInformation($"Fetched products for category '{category}'. Count: {products.Count}");
-                }
+            var productsModel = await _productService.GetProductsAsync(category);
+            List<ProductView> products = _mapper.Map<List<ProductView>>(productsModel);
+            _logger.LogInformation($"Fetched all products. Count: {products.Count}");
 
             return View(products);
             }
@@ -66,34 +45,18 @@ public class ProductController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(int id, string category)
         {
-        if (id <= 0)
-            {
-            _logger.LogWarning("Invalid product ID: {ProductId}", id);
-            return BadRequest("Invalid product ID.");
-            }
 
-        if (string.IsNullOrWhiteSpace(category))
-            {
-            _logger.LogWarning("Missing category for product ID: {ProductId}", id);
-            return BadRequest("Category is required.");
-            }
 
         try
             {
-            var product = await _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .Include(p => p.Variants)
-                    .ThenInclude(v => v.Images)
-                .FirstOrDefaultAsync(p => p.ProductID == id && p.Category.CategoryName == category);
+            var result = await _productService.GetProductDetailsAsync(category, id);
 
-            if (product == null)
+            if (!result.Success)
                 {
-                _logger.LogInformation("Product not found. ID: {ProductId}, Category: {Category}", id, category);
-                return NotFound("Product not found.");
+                return BadRequest(result.Message);
                 }
-
-            return View(product);
+            var productView = _mapper.Map<ProductView>(result.Product);
+            return View(productView);
             }
         catch (Exception ex)
             {
@@ -116,38 +79,15 @@ public class ProductController : Controller
         ViewData["Filter"] = "filter";
         try
             {
-            List<Product> products;
 
-            if (string.IsNullOrEmpty(filterParams.Category))
-                {
-                // If no category provided, return all products
-                products = await _context.Products
-                    .Include(p => p.Brand)
-                    .Include(p => p.Category)
-                    .Include(p => p.Variants)
-                        .ThenInclude(v => v.Images)
-                    .ToListAsync();
 
-                products = FilterProducts(products, filterParams);
+            // If no category provided, return all products
+            var productModel = await _productService.GetProductsAsync(filterParams.Category);
+            List<ProductView> products = _mapper.Map<List<ProductView>>(productModel);
+            _logger.LogInformation(productModel.Count().ToString());
+            products = FilterProducts(products, filterParams);
 
-                _logger.LogInformation($"Fetched all products. Count: {products.Count}");
-                }
-
-            else
-                {
-                // Filter products by category name
-                products = await _context.Products
-                    .Include(p => p.Brand)
-                    .Include(p => p.Category)
-                    .Include(p => p.Variants)
-                        .ThenInclude(v => v.Images)
-                    .Where(p => p.Category.CategoryName == filterParams.Category)
-                    .ToListAsync();
-
-                products = FilterProducts(products, filterParams);
-
-                _logger.LogInformation($"Fetched products for category '{filterParams.Category}'. Count: {products.Count}");
-                }
+            _logger.LogInformation($"Fetched all products. Count: {products.Count}");
 
             return PartialView("_ProductList", products);
             }
@@ -159,7 +99,7 @@ public class ProductController : Controller
         }
 
 
-    private List<Product> FilterProducts(List<Product> products, Filter filterParams)
+    private List<ProductView> FilterProducts(List<ProductView> products, Filter filterParams)
         {
         // DEBUG
         //var filteredProducts = products.AsEnumerable();

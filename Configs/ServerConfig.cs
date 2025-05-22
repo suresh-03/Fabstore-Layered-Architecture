@@ -1,4 +1,4 @@
-﻿namespace e_commerce_website.Configs
+﻿namespace FabstoreWebApplication.Configs
     {
     public class ServerConfig
         {

@@ -1,18 +1,19 @@
-﻿using e_commerce_website.Database;
-using e_commerce_website.Helpers;
-using e_commerce_website.Models;
+﻿using AutoMapper;
+using Fabstore.Domain.Interfaces.IProduct;
+using FabstoreWebApplication.Helpers;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
-namespace e_commerce_website.ViewComponents
+namespace FabstoreWebApplication.ViewComponents
     {
     public class CategoryMenuViewComponent : ViewComponent
         {
-        private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly IProductService _productService;
         private readonly ILogger<CategoryMenuViewComponent> _logger;
-        public CategoryMenuViewComponent(AppDbContext context, ILogger<CategoryMenuViewComponent> logger)
+        public CategoryMenuViewComponent(ILogger<CategoryMenuViewComponent> logger, IMapper mapper, IProductService productService)
             {
-            _context = context;
+            _mapper = mapper;
+            _productService = productService;
             _logger = logger;
             }
 
@@ -21,23 +22,7 @@ namespace e_commerce_website.ViewComponents
             {
             try
                 {
-                var categoriesDb = await _context.Categories
-                    .Where(c => c.ParentCategoryID != null)
-                    .Include(c => c.SubCategories)// Exclude top-level or null-parent categories
-                    .Select(c => new
-                        {
-                        c.CategoryName,
-                        c.ParentCategoryID
-                        })
-                    .ToListAsync();
-
-                var categoriesDictionary = categoriesDb
-                  .AsParallel()
-                  .GroupBy(c => c.ParentCategoryID)
-                  .ToDictionary(
-                      g => ((GenderType)g.Key).ToString(),
-                      g => g.AsParallel().Select(c => c.CategoryName).ToList()
-                  );
+                var result = await _productService.GetCategoriesAsync();
 
                 // --------------- DEBUG ------------------- //
 
@@ -67,8 +52,9 @@ namespace e_commerce_website.ViewComponents
                 //    );
 
                 // -----------------------------------------------------------------------//
-                _logger.LogInformation(JsonHelper.AsJsonString(categoriesDictionary));
-                return View(categoriesDictionary);
+
+                _logger.LogInformation(JsonHelper.AsJsonString(result.Categories));
+                return View(result.Categories);
                 }
             catch (Exception ex)
                 {

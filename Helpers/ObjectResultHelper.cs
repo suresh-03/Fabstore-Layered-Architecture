@@ -1,7 +1,7 @@
-﻿using e_commerce_website.Models.auth;
+﻿using FabstoreWebApplication.ViewModels.Auth;
 using Microsoft.AspNetCore.Mvc;
 
-namespace e_commerce_website.Helpers
+namespace FabstoreWebApplication.Helpers
     {
     public sealed class ObjectResultHelper
         {

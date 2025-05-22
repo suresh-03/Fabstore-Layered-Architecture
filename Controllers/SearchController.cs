@@ -1,21 +1,22 @@
-﻿using e_commerce_website.Database;
-using e_commerce_website.Models;
+﻿using AutoMapper;
+using Fabstore.Domain.Interfaces.IProduct;
+using FabstoreWebApplication.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Concurrent;
 
-namespace e_commerce_website.Controllers
+namespace FabstoreWebApplication.Controllers
     {
     public class SearchController : Controller
         {
 
         private readonly ILogger<SearchController> _logger;
-        private readonly AppDbContext _context;
+        private readonly IProductService _productService;
+        private readonly IMapper _mapper;
 
-        public SearchController(ILogger<SearchController> logger, AppDbContext context)
+        public SearchController(ILogger<SearchController> logger, IProductService productService, IMapper mapper)
             {
             _logger = logger;
-            _context = context;
+            _productService = productService;
+            _mapper = mapper;
             }
 
         [NonAction]
@@ -36,57 +37,14 @@ namespace e_commerce_website.Controllers
 
             string filteredQuery = StringHelper.FilterQuery(query);
 
-            var products = await _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category).ThenInclude(c => c.ParentCategory)
-                .Include(p => p.Variants).ThenInclude(v => v.Images)
-                .ToListAsync();
+            var result = await _productService.GetSearchedProductsAsync(filteredQuery);
 
-            var matchedProducts = GetMatchedProducts(filteredQuery, products);
+            var productsView = _mapper.Map<List<ProductView>>(result.SearchedProducts);
 
-            _logger.LogInformation($"Fetched all matched products. Count: {matchedProducts.Count}");
+            _logger.LogInformation($"Fetched all matched products. Count: {productsView.Count}");
             ViewData["Query"] = query;
-            return PartialView("_ProductList", matchedProducts);
+            return PartialView("_ProductList", productsView);
             }
-
-        private List<Product> GetMatchedProducts(string query, List<Product> products)
-            {
-            string[] tokens = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            ConcurrentBag<Product> matchedProducts = new ConcurrentBag<Product>();
-
-            Parallel.ForEach(products, product =>
-                {
-                    int matchCount = 0;
-                    foreach (var token in tokens)
-                        {
-                        if (ProductMatch(product, token))
-                            {
-                            matchCount++;
-                            }
-                        }
-
-                    double matchPercentage = (double)matchCount / tokens.Length * 100;
-                    if (matchPercentage >= 75)
-                        {
-                        matchedProducts.Add(product);
-                        }
-                    // DEBUG
-                    //Console.WriteLine($"Search Controller {Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
-                });
-
-            return matchedProducts.ToList();
-            }
-
-        private bool ProductMatch(Product product, string token)
-            {
-            return (product.Brand?.BrandName?.Contains(token, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                   (product.Category?.ParentCategory?.CategoryName?.Contains(token, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                   (product.Category?.CategoryName?.Contains(token, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                   (product.ProductName?.Contains(token, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                   (product.Description?.Contains(token, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                   (product.Variants?.Any(v => v.Color?.Contains(token, StringComparison.OrdinalIgnoreCase) ?? false) ?? false);
-            }
-
 
         }
     }

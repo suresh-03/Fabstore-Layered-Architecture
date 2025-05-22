@@ -1,5 +1,8 @@
-﻿@model List<Product>
-@using e_commerce_website.Helpers
+﻿@using FabstoreWebApplication.ViewModels
+@using FabstoreWebApplication.Helpers
+
+@model List<ProductView>
+
 
 @{
     var colors = Model.AsParallel().SelectMany(p => p.Variants.Select(v => v.Color)).Distinct();

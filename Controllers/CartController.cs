@@ -1,23 +1,25 @@
-﻿using e_commerce_website.Database;
-using e_commerce_website.Models;
+﻿using AutoMapper;
+using Fabstore.Domain.Interfaces.ICart;
+using FabstoreWebApplication.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace e_commerce_website.Controllers
+namespace FabstoreWebApplication.Controllers
     {
     [Authorize]
     public class CartController : Controller
         {
 
         private readonly ILogger<CartController> _logger;
-        private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly ICartService _cartService;
 
-        public CartController(ILogger<CartController> logger, AppDbContext context)
+        public CartController(ILogger<CartController> logger, IMapper mapper, ICartService cartService)
             {
             _logger = logger;
-            _context = context;
+            _mapper = mapper;
+            _cartService = cartService;
             }
 
         public async Task<IActionResult> Index()
@@ -32,19 +34,10 @@ namespace e_commerce_website.Controllers
                     return Unauthorized(new { message = "User is not Authenticated" });
                     }
 
-                var userId = int.Parse(userIdentity);
+                var cartItems = await _cartService.GetCartItemsAsync(userIdentity);
+                List<CartView> cartView = _mapper.Map<List<CartView>>(cartItems);
 
-                var cartItems = await _context.Carts
-                    .Include(cart => cart.Variant)
-                        .ThenInclude(variant => variant.Product)
-                        .ThenInclude(category => category.Category)
-                    .Include(cart => cart.Variant)
-                        .ThenInclude(variant => variant.Images)
-                    .Where(cart => cart.UserID == userId)
-                    .ToListAsync();
-
-
-                return View(cartItems);
+                return View(cartView);
                 }
             catch (Exception ex)
                 {
@@ -68,32 +61,15 @@ namespace e_commerce_website.Controllers
                     return Unauthorized(new { message = "User is not authenticated." });
                     }
 
-                var userId = int.Parse(userIdentity);
+                var result = await _cartService.AddToCartAsync(userIdentity, variantId);
 
-                var cartItem = await _context.Carts
-                    .Where(cart => cart.VariantID == variantId && cart.UserID == userId)
-                    .FirstOrDefaultAsync();
-
-                if (cartItem != null)
+                if (!result.Success)
                     {
-                    return BadRequest("Product Already Exists in the Cart");
+                    _logger.LogWarning($"AddToCart failed: {result.Message}");
+                    return BadRequest(new { success = false, message = result.Message });
                     }
 
-
-
-
-                // Create and add cart to both context and variant's collection
-                var cart = new Cart
-                    {
-                    VariantID = variantId,
-                    UserID = userId
-                    };
-
-                await _context.Carts.AddAsync(cart);          // Also add to context to ensure EF tracks it
-
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Product variant {variantId} added to cart for user {userId}.");
+                _logger.LogInformation($"Product variant {variantId} added to cart for user {userIdentity}.");
                 return Json(new { success = true, variantId });
                 }
             catch (Exception ex)
@@ -115,16 +91,10 @@ namespace e_commerce_website.Controllers
                     _logger.LogWarning("RemoveFromCart failed: User is not authenticated.");
                     return Unauthorized(new { message = "User is not authenticated." });
                     }
-                var userId = int.Parse(userIdentity);
-                var cartItem = await _context.Carts
-                        .Where(cart => cart.VariantID == variantId && cart.UserID == userId).Select(cart => cart).FirstOrDefaultAsync();
-                if (cartItem != null)
-                    {
-                    cartItem.IsDeleted = true;
-                    cartItem.DeletedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-                    }
-                _logger.LogInformation($"Product variant {variantId} removed from cart for user {userId}.");
+
+                var result = await _cartService.RemoveFromCartAsync(userIdentity, variantId);
+
+                _logger.LogInformation($"Product variant {variantId} removed from cart for user {userIdentity}.");
                 return Json(new { success = true, variantId });
                 }
             catch (Exception ex)
@@ -149,12 +119,8 @@ namespace e_commerce_website.Controllers
                     return Json(new { cartItemsCount = 0 });
                     }
 
-                var userId = int.Parse(userIdentity);
-
-                var cartItemsCount = await _context.Carts
-                    .Where(cartItem => cartItem.UserID == userId)
-                    .CountAsync();
-
+                var result = await _cartService.GetCartCountAsync(userIdentity);
+                var cartItemsCount = result.CartCount;
                 return Json(new { cartItemsCount });
                 }
             catch (Exception ex)
@@ -178,10 +144,8 @@ namespace e_commerce_website.Controllers
                     _logger.LogWarning("RemoveFromCart failed: User is not authenticated.");
                     return Unauthorized(new { message = "User is not authenticated." });
                     }
-                var userId = int.Parse(userIdentity);
-                var cartItem = await _context.Carts
-                        .Where(cart => cart.VariantID == variantId && cart.UserID == userId).Select(cart => cart).FirstOrDefaultAsync();
-                bool itemExists = cartItem == null ? false : true;
+                var result = await _cartService.CartExistsAsync(userIdentity, variantId);
+                var itemExists = result.CartExists;
                 return Json(new { itemExists });
                 }
             catch (Exception ex)

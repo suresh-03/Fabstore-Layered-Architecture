@@ -4,10 +4,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>e_commerce_website</RootNamespace>
+    <RootNamespace>Fabstore.WebApplication</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.5">
@@ -15,6 +16,17 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\images\products\women\sarees\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fabstore.DataAccess\Fabstore.DataAccess.csproj" />
+    <ProjectReference Include="..\Fabstore.Domain\Fabstore.Domain.csproj" />
+    <ProjectReference Include="..\Fabstore.Framework\Fabstore.Framework.csproj" />
+    <ProjectReference Include="..\Fabstore.Service\Fabstore.Service.csproj" />
   </ItemGroup>
 
 </Project>

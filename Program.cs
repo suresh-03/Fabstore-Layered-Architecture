@@ -1,6 +1,12 @@
-using e_commerce_website.Configs;
-using e_commerce_website.Database;
-using e_commerce_website.Filters;
+using Fabstore.DataAccess;
+using Fabstore.DataAccess.Database;
+using Fabstore.Domain.Interfaces.ICart;
+using Fabstore.Domain.Interfaces.IProduct;
+using Fabstore.Domain.Interfaces.IUser;
+using Fabstore.Service;
+using FabstoreWebApplication.Configs;
+using FabstoreWebApplication.Filters;
+using FabstoreWebApplication.Mapping;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,6 +38,20 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
         options.SlidingExpiration = true;
     });
+
+// Mapper for ViewModel to EFModel and Vice-Versa
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Adding Repository Dependencies
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+
+// Adding Service Dependencies
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 
 // Service for DBContext
 builder.Services.AddDbContext<AppDbContext>(options =>
