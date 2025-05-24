@@ -44,6 +44,7 @@ function handleAddToCart(api) {
                 console.log("Added to cart:", response);
                 alert("Product Added to the Cart");
                 renderRemoveFromCart();
+                //window.location.reload();
                 renderCartCount('/api/cart/count');
             },
             error: function (xhr, status, error) {
@@ -76,6 +77,7 @@ function handleRemoveFromCart(api) {
                 console.log("Removed from Cart", response);
                 alert("Product Removed from the Cart");
                 renderAddToCart();
+                //window.location.reload();
                 renderCartCount('/api/cart/count');
             },
             error: function (xhr, status, error) {

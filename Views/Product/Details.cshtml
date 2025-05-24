@@ -5,23 +5,24 @@
 @using System.Security.Claims
 
 
-	@{
-    ViewData["Title"] = "Product Details";
+@{
+	ViewData["Title"] = "Product Details";
 
-    var primaryVariant = Model.Variants?.FirstOrDefault();
-    var primaryImage = primaryVariant?.Images?.FirstOrDefault(i => i.IsPrimary) 
-                       ?? primaryVariant?.Images?.FirstOrDefault();
+	var primaryVariant = Model.Variants?.FirstOrDefault();
+	var primaryImage = primaryVariant?.Images?.FirstOrDefault(i => i.IsPrimary) 
+								?? primaryVariant?.Images?.FirstOrDefault();
 
-    var primaryVariantSize = primaryVariant?.Size;
-    var primaryVariantPrice = primaryVariant?.Price;
-    var primaryVariantColor = primaryVariant?.Color;
-    var primaryImageUrl = primaryImage?.ImageUrl;
-    var primaryVariantId = primaryVariant?.VariantID;
+	var primaryVariantSize = primaryVariant?.Size;
+	var primaryVariantPrice = primaryVariant?.Price;
+	var primaryVariantColor = primaryVariant?.Color;
+	var primaryImageUrl = primaryImage?.ImageUrl;
+	var primaryVariantId = primaryVariant?.VariantID;
 
-    var avgRating = (Model.Reviews != null && Model.Reviews.Count > 0)
-        ? Math.Round(Model.Reviews.Average(r => r.Rating))
-        : 5;
+	var avgRating = (Model.Reviews != null && Model.Reviews.Count > 0)
+		? Math.Round(Model.Reviews.Average(r => r.Rating))
+		: 5;
 
+	
 }
 
 
@@ -71,6 +72,7 @@
 			<div id="product-btns" class="product-btns">
 				<!-- href added dynamically -->
 				@if(User.Identity != null && User.Identity.IsAuthenticated){
+			
 				<a id="add-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
 					<div id="cart-container" class="cart-container">
 						<span id="cart-icon" class="material-symbols-outlined">
@@ -79,6 +81,8 @@
 						<span id="cart-content">Add to Cart</span>
 					</div>
 				</a>
+				
+				
 					<a id="remove-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
 						<div id="cart-container" class="cart-container">
 							<span id="cart-icon" class="material-symbols-outlined">
@@ -87,6 +91,7 @@
 							<span id="cart-content">Remove From Cart</span>
 						</div>
 					</a>
+					
 					}
 				<a id="favorite-btn" class="favourite-btn">
 					<div id="favorite-container" class="not-favorite-container">

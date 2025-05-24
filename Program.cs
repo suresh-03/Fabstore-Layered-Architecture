@@ -53,6 +53,11 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 
+// For Session Handling
+builder.Services.AddSession();
+
+
+
 // Service for DBContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -81,6 +86,7 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+app.UseSession();
 
 
 app.MapControllerRoute(
