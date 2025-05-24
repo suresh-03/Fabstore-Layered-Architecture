@@ -1,4 +1,5 @@
 ﻿using Fabstore.DataAccess.Database;
+using Fabstore.Domain.CustomExceptions;
 using Fabstore.Domain.Interfaces.IProduct;
 using Fabstore.Domain.Models;
 using Microsoft.EntityFrameworkCore;
@@ -19,66 +20,89 @@ namespace Fabstore.DataAccess
 
         public async Task<List<Product>> GetProductsAsync(string? category)
             {
-            if (string.IsNullOrEmpty(category))
+            try
                 {
-                return await _context.Products
-                         .Include(p => p.Brand)
-                         .Include(p => p.Category)
-                         .Include(p => p.Variants)
-                             .ThenInclude(v => v.Images).ToListAsync();
+                if (string.IsNullOrEmpty(category))
+                    {
+                    return await _context.Products
+                             .Include(p => p.Brand)
+                             .Include(p => p.Category)
+                             .Include(p => p.Variants)
+                                 .ThenInclude(v => v.Images).ToListAsync();
 
+                    }
+                else
+                    {
+                    return await _context.Products
+                             .Include(p => p.Brand)
+                             .Include(p => p.Category)
+                             .Include(p => p.Variants)
+                                 .ThenInclude(v => v.Images)
+                             .Where(p => p.Category.CategoryName == category).ToListAsync();
+
+                    }
                 }
-            else
+            catch (Exception ex)
                 {
-                return await _context.Products
-                         .Include(p => p.Brand)
-                         .Include(p => p.Category)
-                         .Include(p => p.Variants)
-                             .ThenInclude(v => v.Images)
-                         .Where(p => p.Category.CategoryName == category).ToListAsync();
-
+                throw new DatabaseException("An error occurred while retrieving products.", ex);
                 }
             }
 
         public async Task<Product> GetProductDetailsAsync(string? category, int id)
             {
-            var query = _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .Include(p => p.Variants)
-                    .ThenInclude(v => v.Images)
-                .Where(p => p.ProductID == id);
-
-            if (!string.IsNullOrEmpty(category))
+            try
                 {
-                query = query.Where(p => p.Category.CategoryName == category);
-                }
+                var query = _context.Products
+                    .Include(p => p.Brand)
+                    .Include(p => p.Category)
+                    .Include(p => p.Variants)
+                        .ThenInclude(v => v.Images)
+                    .Where(p => p.ProductID == id);
 
-            return await query.FirstOrDefaultAsync();
+                if (!string.IsNullOrEmpty(category))
+                    {
+                    query = query.Where(p => p.Category.CategoryName == category);
+                    }
+
+                return await query.FirstOrDefaultAsync();
+                }
+            catch (Exception ex)
+                {
+                throw new DatabaseException("An error occurred while retrieving product details.", ex);
+                }
             }
 
         public async Task<List<Product>> GetSearchedProductsAsync()
             {
-            return await _context.Products
-            .Include(p => p.Brand)
-            .Include(p => p.Category).ThenInclude(c => c.ParentCategory)
-            .Include(p => p.Variants).ThenInclude(v => v.Images)
-            .ToListAsync();
+            try
+                {
+                return await _context.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category).ThenInclude(c => c.ParentCategory)
+                .Include(p => p.Variants).ThenInclude(v => v.Images)
+                .ToListAsync();
+                }
+            catch (Exception ex)
+                {
+                throw new DatabaseException("An error occurred while retrieving searched products.", ex);
+                }
             }
 
         public async Task<List<Category>> GetCategoriesAsync()
             {
-
-            return await _context.Categories
-                .Where(c => c.ParentCategoryID != null)
-                .Include(c => c.SubCategories)
-                .ToListAsync();
+            try
+                {
+                return await _context.Categories
+                    .Where(c => c.ParentCategoryID != null)
+                    .Include(c => c.SubCategories)
+                    .ToListAsync();
+                }
+            catch (Exception ex)
+                {
+                throw new DatabaseException("An error occurred while retrieving categories.", ex);
+                }
             }
 
-        public async Task<bool> SaveDbChangesAsync()
-            {
-            await _context.SaveChangesAsync();
-            return true;
-            }
+
         }
     }

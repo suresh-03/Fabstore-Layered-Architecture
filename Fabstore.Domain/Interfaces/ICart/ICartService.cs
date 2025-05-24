@@ -1,21 +1,22 @@
 ﻿using Fabstore.Domain.Models;
+using Fabstore.Domain.ResponseFormat;
 
 namespace Fabstore.Domain.Interfaces.ICart
     {
     public interface ICartService
         {
 
-        public Task<List<Cart>> GetCartItemsAsync(string userIdentity);
+        public Task<IServiceResponse<List<Cart>>> GetCartItemsAsync(string userIdentity);
 
-        public Task<(bool Success, string Message)> AddToCartAsync(string userIdentity, int productVariantId);
+        public Task<IServiceResponse> AddToCartAsync(string userIdentity, int productVariantId);
 
-        public Task<(bool Success, string Message)> RemoveFromCartAsync(string userIdentity, int productVariantId);
+        public Task<IServiceResponse> RemoveFromCartAsync(string userIdentity, int productVariantId);
 
-        public Task<(bool Success, string Message, int CartCount)> GetCartCountAsync(string userIdentity);
+        public Task<IServiceResponse<int>> GetCartCountAsync(string userIdentity);
 
-        public Task<(bool Success, string Message, bool CartExists)> CartExistsAsync(string userIdentity, int productVariantId);
+        public Task<IServiceResponse<bool>> CartExistsAsync(string userIdentity, int productVariantId);
 
-        public Task<(bool Success, string Message)> UpdateCartQuantity(string userIdentity, int cartId, int quantity);
+        public Task<IServiceResponse> UpdateCartQuantity(string userIdentity, int cartId, int quantity);
 
         }
     }

@@ -1,5 +1,8 @@
-﻿using Fabstore.Domain.Interfaces.IProduct;
+﻿using Fabstore.Domain.CustomExceptions;
+using Fabstore.Domain.Interfaces.IProduct;
 using Fabstore.Domain.Models;
+using Fabstore.Domain.ResponseFormat;
+using Fabstore.Service.ResponseFormat;
 using System.Collections.Concurrent;
 using static Fabstore.Framework.CommonEnums;
 
@@ -17,47 +20,70 @@ public class ProductService : IProductService
 
 
 
-    public async Task<List<Product>> GetProductsAsync(string? categoy)
+    public async Task<IServiceResponse<List<Product>>> GetProductsAsync(string? categoy)
         {
-        return await _repo.GetProductsAsync(categoy);
+        try
+            {
+            var products = await _repo.GetProductsAsync(categoy);
+            return new ServiceResponse<List<Product>>(true, "Products Fetched Successfully", ActionType.Retrieved, products);
+            }
+        catch (Exception ex)
+            {
+            throw new ServiceException("Error occurred while getting products", ex);
+            }
         }
 
 
-    public async Task<(bool Success, string? Message, Product? Product)> GetProductDetailsAsync(string? category, int id)
+    public async Task<IServiceResponse<Product>> GetProductDetailsAsync(string? category, int id)
         {
-        if (id <= 0)
+        try
             {
-            return (false, $"Invalid product ID: {id}", null);
+            if (id <= 0)
+                {
+                return new ServiceResponse<Product>(false, $"Invalid product ID: {id}", ActionType.ValidationError, null);
+
+                }
+
+            if (string.IsNullOrWhiteSpace(category))
+                {
+                return new ServiceResponse<Product>(false, $"Missing category for product ID: {id}", ActionType.ValidationError, null);
+                }
+
+            var product = await _repo.GetProductDetailsAsync(category, id);
+            if (product == null)
+                {
+                return new ServiceResponse<Product>(false, $"Product not found in category {category} with ID: {id}", ActionType.NotFound, null);
+                }
+            return new ServiceResponse<Product>(true, "Product Fetched Successfully", ActionType.Retrieved, product);
 
             }
-
-        if (string.IsNullOrWhiteSpace(category))
+        catch (Exception ex)
             {
-            return (false, $"Missing category for product ID: {id}", null);
+            throw new ServiceException($"Error occurred while getting product details for category {category} and ID {id}", ex);
             }
 
-        var product = await _repo.GetProductDetailsAsync(category, id);
-        if (product == null)
-            {
-            return (false, $"Product not found in category {category} with ID: {id}", null);
-            }
-
-        return (true, "Product Fetched Successfully", product);
         }
 
-    public async Task<(bool Success, string Message, List<Product>? SearchedProducts)> GetSearchedProductsAsync(string query)
+    public async Task<IServiceResponse<List<Product>>> GetSearchedProductsAsync(string query)
         {
-        var products = await _repo.GetSearchedProductsAsync();
-
-        var matchedProducts = GetMatchedProducts(query, products);
-
-        if (matchedProducts.Count == 0)
+        try
             {
-            return (false, "No products found", null);
+            var products = await _repo.GetSearchedProductsAsync();
+
+            var matchedProducts = GetMatchedProducts(query, products);
+
+            if (matchedProducts.Count == 0)
+                {
+                return new ServiceResponse<List<Product>>(true, "No products found", ActionType.Retrieved, null);
+                }
+
+            return new ServiceResponse<List<Product>>(true, "Products Fetched Successfully", ActionType.Retrieved, matchedProducts);
+
             }
-
-        return (true, "Products Fetched Successfully", matchedProducts);
-
+        catch (Exception ex)
+            {
+            throw new ServiceException($"Error occurred while searching for products with query '{query}'", ex);
+            }
         }
 
     private List<Product> GetMatchedProducts(string query, List<Product> products)
@@ -98,26 +124,33 @@ public class ProductService : IProductService
                (product.Variants?.Any(v => v.Color?.Contains(token, StringComparison.OrdinalIgnoreCase) ?? false) ?? false);
         }
 
-    public async Task<(bool Success, string Message, Dictionary<string, List<string>> Categories)> GetCategoriesAsync()
+    public async Task<IServiceResponse<Dictionary<string, List<string>>>> GetCategoriesAsync()
         {
-        var categories = await _repo.GetCategoriesAsync();
-
-
-        if (categories != null)
+        try
             {
-            var categoriesDictionary = categories
-                  .AsParallel()
-                  .GroupBy(c => c.ParentCategoryID)
-                  .ToDictionary(
-                      g => ((GenderType)g.Key).ToString(),
-                      g => g.AsParallel().Select(c => c.CategoryName).ToList()
-                  );
+            var categories = await _repo.GetCategoriesAsync();
 
-            return (true, "Categories fetched", categoriesDictionary);
+
+            if (categories != null)
+                {
+                var categoriesDictionary = categories
+                      .AsParallel()
+                      .GroupBy(c => c.ParentCategoryID)
+                      .ToDictionary(
+                          g => ((GenderType)g.Key).ToString(),
+                          g => g.AsParallel().Select(c => c.CategoryName).ToList()
+                      );
+
+                return new ServiceResponse<Dictionary<string, List<string>>>(true, "Categories fetched", ActionType.Retrieved, categoriesDictionary);
+                }
+            else
+                {
+                return new ServiceResponse<Dictionary<string, List<string>>>(false, "No categories found", ActionType.NotFound, null);
+                }
             }
-        else
+        catch (Exception ex)
             {
-            return (false, "No categories found", null);
+            throw new ServiceException("Error occurred while getting categories", ex);
             }
         }
     }

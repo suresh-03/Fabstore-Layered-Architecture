@@ -2,7 +2,7 @@
 
 namespace Fabstore.Domain.Interfaces.IProduct
     {
-    public interface IProductRepository : IBaseRepository
+    public interface IProductRepository
         {
         public Task<List<Product>> GetProductsAsync(string? category);
 

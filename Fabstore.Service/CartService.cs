@@ -1,5 +1,8 @@
-﻿using Fabstore.Domain.Interfaces.ICart;
+﻿using Fabstore.Domain.CustomExceptions;
+using Fabstore.Domain.Interfaces.ICart;
 using Fabstore.Domain.Models;
+using Fabstore.Domain.ResponseFormat;
+using Fabstore.Service.ResponseFormat;
 
 namespace Fabstore.Service;
 
@@ -12,89 +15,134 @@ public class CartService : ICartService
         _repo = repo;
         }
 
-    public async Task<(bool Success, string Message)> AddToCartAsync(string userIdentity, int productVariantId)
+    public async Task<IServiceResponse> AddToCartAsync(string userIdentity, int productVariantId)
         {
-        var userId = int.Parse(userIdentity);
-
-        var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
-
-        if (cartItem != null && !cartItem.IsDeleted)
+        try
             {
-            return (false, "Product Already Exists in the Cart");
+            var userId = int.Parse(userIdentity);
+
+            var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
+
+            if (cartItem != null && !cartItem.IsDeleted)
+                {
+                return new ServiceResponse(false, "Product Already Exists in the Cart", ActionType.Conflict);
+                }
+
+            if (cartItem != null && cartItem.IsDeleted)
+                {
+                await _repo.AddToCartAsync(cartItem);
+                }
+            else
+                {
+                // Create and add cart to both context and variant's collection
+                Cart cart = new Cart
+                    {
+                    VariantID = productVariantId,
+                    UserID = userId
+                    };
+
+                await _repo.AddToCartAsync(cart);
+                }
+            return new ServiceResponse(true, "Product Added to Cart", ActionType.Created);
             }
-
-        if (cartItem != null && cartItem.IsDeleted)
+        catch (Exception ex)
             {
-            cartItem.IsDeleted = false;
-            await _repo.SaveDbChangesAsync();
-            return (true, "Product Added to Cart");
+            throw new ServiceException("An unexpected error occurred while adding to cart.", ex);
             }
-
-        // Create and add cart to both context and variant's collection
-        Cart cart = new Cart
-            {
-            VariantID = productVariantId,
-            UserID = userId
-            };
-
-        await _repo.AddToCartAsync(cart);
-        return (true, "Product Added to Cart");
         }
 
-    public async Task<(bool Success, string Message, bool CartExists)> CartExistsAsync(string userIdentity, int productVariantId)
+    public async Task<IServiceResponse<bool>> CartExistsAsync(string userIdentity, int productVariantId)
         {
-        var userId = int.Parse(userIdentity);
-        var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
-        if (cartItem == null || cartItem.IsDeleted)
+        try
             {
-            return (false, "Product not exists in the Cart", false);
+            var userId = int.Parse(userIdentity);
+            var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
+            if (cartItem == null || cartItem.IsDeleted)
+                {
+                return new ServiceResponse<bool>(true, "Product not exists in the Cart", ActionType.Retrieved, false);
+                }
+            return new ServiceResponse<bool>(true, "Product exists in the Cart", ActionType.Retrieved, true);
             }
-        return (true, "Product exists in the Cart", true);
-        }
-
-    public async Task<(bool Success, string Message, int CartCount)> GetCartCountAsync(string userIdentity)
-        {
-        var userId = int.Parse(userIdentity);
-        var cartCount = await _repo.GetCartCountAsync(userId);
-        if (cartCount == 0)
+        catch (Exception ex)
             {
-            return (false, "No Items in Cart", 0);
+            throw new ServiceException("An unexpected error occurred while checking cart existence.", ex);
             }
-        return (true, "Items in Cart", cartCount);
         }
 
-    public async Task<List<Cart>> GetCartItemsAsync(string userIdentity)
+    public async Task<IServiceResponse<int>> GetCartCountAsync(string userIdentity)
         {
-        int userId = int.Parse(userIdentity);
-        return await _repo.GetCartItemsAsync(userId);
-        }
-
-    public async Task<(bool Success, string Message)> RemoveFromCartAsync(string userIdentity, int productVariantId)
-        {
-        var userId = int.Parse(userIdentity);
-        var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
-        if (cartItem != null)
+        try
             {
-            cartItem.IsDeleted = true;
-            cartItem.DeletedAt = DateTime.UtcNow;
-            cartItem.Quantity = 1;
-            await _repo.RemoveFromCartAsync();
-            return (true, "Product Removed from Cart");
+            var userId = int.Parse(userIdentity);
+            var cartCount = await _repo.GetCartCountAsync(userId);
+            if (cartCount == 0)
+                {
+                return new ServiceResponse<int>(true, "No Items in Cart", ActionType.Retrieved, 0);
+                }
+            return new ServiceResponse<int>(true, "Items in Cart", ActionType.Retrieved, cartCount);
             }
-
-        return (false, "Product Not Found in Cart");
-        }
-
-    public async Task<(bool Success, string Message)> UpdateCartQuantity(string userIdentity, int cartId, int quantity)
-        {
-        int userId = int.Parse(userIdentity);
-        if (quantity <= 0)
+        catch (Exception ex)
             {
-            return (false, "Quantity should be Greater than 0");
+            throw new ServiceException("An unexpected error occurred while retrieving cart count.", ex);
             }
-        await _repo.UpdateCartQuantity(userId, cartId, quantity);
-        return (true, "Quantity Updated");
         }
+
+    public async Task<IServiceResponse<List<Cart>>> GetCartItemsAsync(string userIdentity)
+        {
+        try
+            {
+            int userId = int.Parse(userIdentity);
+            var cartItems = await _repo.GetCartItemsAsync(userId);
+            if (cartItems == null || cartItems.Count == 0)
+                {
+                return new ServiceResponse<List<Cart>>(false, "No Items in Cart", ActionType.NotFound, null);
+                }
+            return new ServiceResponse<List<Cart>>(true, "Items in Cart", ActionType.Retrieved, cartItems);
+            }
+        catch (Exception ex)
+            {
+            throw new ServiceException("An unexpected error occurred while retrieving cart items.", ex);
+            }
+        }
+
+    public async Task<IServiceResponse> RemoveFromCartAsync(string userIdentity, int productVariantId)
+        {
+        try
+            {
+            var userId = int.Parse(userIdentity);
+            var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
+            if (cartItem != null)
+                {
+                await _repo.RemoveFromCartAsync(cartItem);
+                return new ServiceResponse(true, "Product Removed from Cart", ActionType.Deleted);
+                }
+
+            return new ServiceResponse(false, "Product Not Found in Cart", ActionType.NotFound);
+            }
+        catch (Exception ex)
+            {
+            throw new ServiceException("An unexpected error occurred while removing cart item", ex);
+            }
+        }
+
+    public async Task<IServiceResponse> UpdateCartQuantity(string userIdentity, int cartId, int quantity)
+        {
+        try
+            {
+            int userId = int.Parse(userIdentity);
+            if (quantity <= 0)
+                {
+                return new ServiceResponse(false, "Quantity should be Greater than 0", ActionType.ValidationError);
+                }
+            await _repo.UpdateCartQuantity(userId, cartId, quantity);
+            return new ServiceResponse(true, "Quantity Updated", ActionType.Updated);
+            }
+        catch (Exception ex)
+            {
+            throw new ServiceException("An unexpected error occurred while updating cart quantity.", ex);
+            }
+        }
+
     }
 
 

@@ -1,11 +1,12 @@
 ﻿using Fabstore.Domain.Models;
+using Fabstore.Domain.ResponseFormat;
 
 namespace Fabstore.Domain.Interfaces.IUser;
 
 public interface IUserService
     {
-    public Task<(bool Success, string Message)> SignupAsync(User user);
+    public Task<IServiceResponse> SignupAsync(User user);
 
-    public Task<(bool Success, string Message, User? User)> SigninAsync(Dictionary<string, string> data);
+    public Task<IServiceResponse<User>> SigninAsync(Dictionary<string, string> data);
     }
 

@@ -4,7 +4,7 @@ namespace Fabstore.Domain.Interfaces.IUser
     {
 
 
-    public interface IUserRepository : IBaseRepository
+    public interface IUserRepository
         {
         public Task<bool> AddUserAsync(User user);
 
