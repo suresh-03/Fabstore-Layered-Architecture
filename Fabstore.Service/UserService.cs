@@ -1,6 +1,5 @@
 ﻿using Fabstore.Domain.Interfaces.IUser;
 using Fabstore.Domain.Models;
-using Microsoft.AspNetCore.Identity;
 
 namespace Fabstore.Service;
 
@@ -23,8 +22,7 @@ public class UserService : IUserService
             return (false, "User already exists.");
             }
 
-        var passwordHasher = new PasswordHasher<User>();
-        user.Password = passwordHasher.HashPassword(user, user.Password);
+        user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
         user.CreatedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
@@ -48,10 +46,10 @@ public class UserService : IUserService
         if (user == null)
             return (false, "Invalid Email", null);
 
-        var passwordHasher = new PasswordHasher<User>();
-        var result = passwordHasher.VerifyHashedPassword(user, user.Password, password);
 
-        if (result != PasswordVerificationResult.Success)
+        bool result = BCrypt.Net.BCrypt.Verify(password, user.Password);
+
+        if (!result)
             return (false, "Invalid Password", null);
 
         return (true, "Signed in successfully", user);

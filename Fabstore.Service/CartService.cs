@@ -45,7 +45,7 @@ public class CartService : ICartService
         {
         var userId = int.Parse(userIdentity);
         var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
-        if (cartItem == null)
+        if (cartItem == null || cartItem.IsDeleted)
             {
             return (false, "Product not exists in the Cart", false);
             }
@@ -77,6 +77,7 @@ public class CartService : ICartService
             {
             cartItem.IsDeleted = true;
             cartItem.DeletedAt = DateTime.UtcNow;
+            cartItem.Quantity = 1;
             await _repo.RemoveFromCartAsync();
             return (true, "Product Removed from Cart");
             }
@@ -84,6 +85,16 @@ public class CartService : ICartService
         return (false, "Product Not Found in Cart");
         }
 
+    public async Task<(bool Success, string Message)> UpdateCartQuantity(string userIdentity, int cartId, int quantity)
+        {
+        int userId = int.Parse(userIdentity);
+        if (quantity <= 0)
+            {
+            return (false, "Quantity should be Greater than 0");
+            }
+        await _repo.UpdateCartQuantity(userId, cartId, quantity);
+        return (true, "Quantity Updated");
+        }
     }
 
 

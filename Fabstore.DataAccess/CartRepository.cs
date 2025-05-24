@@ -74,5 +74,12 @@ namespace Fabstore.DataAccess
             await _context.SaveChangesAsync();
             return true;
             }
+
+        public async Task UpdateCartQuantity(int userId, int cartId, int quantity)
+            {
+            await _context.Carts.Where(cart => cart.UserID == userId && cart.CartID == cartId)
+                .ExecuteUpdateAsync(cart => cart
+                .SetProperty(c => c.Quantity, quantity));
+            }
         }
     }

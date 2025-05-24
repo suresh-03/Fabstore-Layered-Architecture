@@ -1,4 +1,4 @@
-﻿namespace Fabstore.DataAccess
+﻿namespace Fabstore.Domain.Interfaces
     {
     public interface IBaseRepository
         {

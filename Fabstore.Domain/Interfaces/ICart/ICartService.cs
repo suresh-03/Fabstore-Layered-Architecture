@@ -15,5 +15,7 @@ namespace Fabstore.Domain.Interfaces.ICart
 
         public Task<(bool Success, string Message, bool CartExists)> CartExistsAsync(string userIdentity, int productVariantId);
 
+        public Task<(bool Success, string Message)> UpdateCartQuantity(string userIdentity, int cartId, int quantity);
+
         }
     }

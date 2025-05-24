@@ -2,7 +2,7 @@
 
 namespace Fabstore.Domain.Interfaces.ICart
     {
-    public interface ICartRepository : IBaseRepositoty
+    public interface ICartRepository : IBaseRepository
         {
         public Task<List<Cart>> GetCartItemsAsync(int userId);
 
@@ -13,5 +13,7 @@ namespace Fabstore.Domain.Interfaces.ICart
         public Task<bool> RemoveFromCartAsync();
 
         public Task<int> GetCartCountAsync(int userId);
+
+        public Task UpdateCartQuantity(int userId, int cartId, int quantity);
         }
     }
