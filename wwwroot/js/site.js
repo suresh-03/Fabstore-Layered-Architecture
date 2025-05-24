@@ -77,7 +77,6 @@ function handleSearch(api) {
             error: function (xhr, status, error) {
                 // Handle any errors here
                 errorMessage = xhr.responseText;
-                alert(errorMessage);
                 console.error("Search request failed:", error);
             }
         });
@@ -139,9 +138,9 @@ function renderCartCount(api) {
     $.ajax({
         url: api,
         type: "GET",
-        success: function (data) {
-            $("#cart-count").text(data.cartItemsCount); // Update the cart count in the UI
-            console.log(data);
+        success: function (response) {
+            $("#cart-count").text(response.data); // Update the cart count in the UI
+            console.log(response);
         },
         error: function (xhr, status, error) {
             console.error("Error fetching cart count:", error);

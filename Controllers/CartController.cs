@@ -1,6 +1,6 @@
-﻿using AutoMapper;
-using Fabstore.Domain.Interfaces.ICart;
-using FabstoreWebApplication.ViewModels;
+﻿using Fabstore.Domain.Interfaces.ICart;
+using Fabstore.WebApplication.Constants;
+using Fabstore.WebApplication.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,13 +12,11 @@ public class CartController : Controller
     {
 
     private readonly ILogger<CartController> _logger;
-    private readonly IMapper _mapper;
     private readonly ICartService _cartService;
 
-    public CartController(ILogger<CartController> logger, IMapper mapper, ICartService cartService)
+    public CartController(ILogger<CartController> logger, ICartService cartService)
         {
         _logger = logger;
-        _mapper = mapper;
         _cartService = cartService;
         }
 
@@ -28,21 +26,19 @@ public class CartController : Controller
             {
             var userIdentity = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userIdentity))
+            if (!IsUserAuthenticated(userIdentity))
                 {
-                _logger.LogWarning("Fetch Cart: User is not Authenticated");
-                return Unauthorized(new { message = "User is not Authenticated" });
+                return ResponseFilter.HandleResponse(false, "User is not Authenticated", HttpStatusCode.UNAUTHORIZED);
                 }
 
-            var cartItems = await _cartService.GetCartItemsAsync(userIdentity);
-            List<CartView> cartView = _mapper.Map<List<CartView>>(cartItems);
+            var serviceResponse = await _cartService.GetCartItemsAsync(userIdentity);
 
-            return View(cartView);
+            return View(serviceResponse.Data);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Error occurred while fetching cart items.");
-            return StatusCode(500, new { success = false, message = "An error occurred while fetching cart items." });
+            return ResponseFilter.HandleResponse(false, "Something went wrong while getting cart items.", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
 
         }
@@ -55,27 +51,20 @@ public class CartController : Controller
             {
             var userIdentity = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userIdentity))
+            if (!IsUserAuthenticated(userIdentity))
                 {
-                _logger.LogWarning("AddToCart failed: User is not authenticated.");
-                return Unauthorized(new { message = "User is not authenticated." });
+                return ResponseFilter.HandleResponse(false, "User is not Authenticated", HttpStatusCode.UNAUTHORIZED);
                 }
 
-            var result = await _cartService.AddToCartAsync(userIdentity, variantId);
+            var serviceResponse = await _cartService.AddToCartAsync(userIdentity, variantId);
 
-            if (!result.Success)
-                {
-                _logger.LogWarning($"AddToCart failed: {result.Message}");
-                return BadRequest(new { success = false, message = result.Message });
-                }
-
-            _logger.LogInformation($"Product variant {variantId} added to cart for user {userIdentity}.");
-            return Json(new { success = true, variantId });
+            _logger.LogInformation(serviceResponse.Message);
+            return ResponseFilter.HandleResponse(serviceResponse);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Error occurred while adding to cart.");
-            return StatusCode(500, new { success = false, message = "An error occurred while adding to cart.", variantId });
+            return ResponseFilter.HandleResponse(false, "Something went wrong while adding cart item", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -86,21 +75,20 @@ public class CartController : Controller
         try
             {
             var userIdentity = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdentity))
+            if (!IsUserAuthenticated(userIdentity))
                 {
-                _logger.LogWarning("RemoveFromCart failed: User is not authenticated.");
-                return Unauthorized(new { message = "User is not authenticated." });
+                return ResponseFilter.HandleResponse(false, "User is not Authenticated", HttpStatusCode.UNAUTHORIZED);
                 }
 
-            var result = await _cartService.RemoveFromCartAsync(userIdentity, variantId);
+            var serviceResponse = await _cartService.RemoveFromCartAsync(userIdentity, variantId);
 
-            _logger.LogInformation($"Product variant {variantId} removed from cart for user {userIdentity}.");
-            return Json(new { success = true, variantId });
+            _logger.LogInformation(serviceResponse.Message);
+            return ResponseFilter.HandleResponse(serviceResponse);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Error occurred while removing from cart.");
-            return StatusCode(500, new { success = false, message = "An error occurred while removing from cart." });
+            return ResponseFilter.HandleResponse(false, "Something went wrong while removing cart item", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -113,20 +101,18 @@ public class CartController : Controller
             {
             var userIdentity = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userIdentity))
+            if (!IsUserAuthenticated(userIdentity))
                 {
-                _logger.LogWarning("GetCartCount: User is not authenticated.");
-                return Json(new { cartItemsCount = 0 });
+                return ResponseFilter.HandleResponse(false, "User is not Authenticated", HttpStatusCode.UNAUTHORIZED);
                 }
 
-            var result = await _cartService.GetCartCountAsync(userIdentity);
-            var cartItemsCount = result.CartCount;
-            return Json(new { cartItemsCount });
+            var serviceResponse = await _cartService.GetCartCountAsync(userIdentity);
+            return ResponseFilter.HandleResponse(serviceResponse);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Error occurred while fetching cart count.");
-            return StatusCode(500, new { cartItemsCount = 0, message = "An error occurred." });
+            return ResponseFilter.HandleResponse(false, "Something went wrong while getting cart count", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -139,19 +125,17 @@ public class CartController : Controller
         try
             {
             var userIdentity = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdentity))
+            if (!IsUserAuthenticated(userIdentity))
                 {
-                _logger.LogWarning("RemoveFromCart failed: User is not authenticated.");
-                return Unauthorized(new { message = "User is not authenticated." });
+                return ResponseFilter.HandleResponse(false, "User is not Authenticated", HttpStatusCode.UNAUTHORIZED);
                 }
-            var result = await _cartService.CartExistsAsync(userIdentity, variantId);
-            var itemExists = result.CartExists;
-            return Json(new { itemExists });
+            var serviceResponse = await _cartService.CartExistsAsync(userIdentity, variantId);
+            return ResponseFilter.HandleResponse(serviceResponse);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Error occurred while fetching cart count.");
-            return StatusCode(500, new { cartItemsCount = 0, message = "An error occurred." });
+            return ResponseFilter.HandleResponse(false, "Something went wrong while checking cart item existence.", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -162,23 +146,29 @@ public class CartController : Controller
         try
             {
             var userIdentity = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdentity))
+            if (!IsUserAuthenticated(userIdentity))
                 {
-                _logger.LogWarning("UpdateCartCount failed: User is not authenticated.");
-                return Unauthorized(new { message = "User is not authenticated." });
+                return ResponseFilter.HandleResponse(false, "User is not Authenticated", HttpStatusCode.UNAUTHORIZED);
                 }
-            var result = await _cartService.UpdateCartQuantity(userIdentity, cartModel.CartId, cartModel.Quantity);
-            if (result.Success)
-                {
-                return StatusCode(200, new { result.Message });
-                }
-            return StatusCode(400, new { result.Message });
+            var serviceResponse = await _cartService.UpdateCartQuantity(userIdentity, cartModel.CartId, cartModel.Quantity);
+            return ResponseFilter.HandleResponse(serviceResponse);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Error occurred while updating cart count.");
-            return StatusCode(500, new { success = false, message = "An error occurred while updating cart count." });
+            return ResponseFilter.HandleResponse(false, "Something went wrong while updating cart quantity.", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
+        }
+
+    private bool IsUserAuthenticated(string userIdentity)
+        {
+        if (string.IsNullOrEmpty(userIdentity))
+            {
+            _logger.LogWarning("User is not authenticated.");
+            return false;
+            }
+
+        return true;
         }
 
     }

@@ -1,18 +1,14 @@
-﻿using AutoMapper;
-using Fabstore.Domain.Interfaces.IProduct;
-using FabstoreWebApplication.Helpers;
+﻿using Fabstore.Domain.Interfaces.IProduct;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FabstoreWebApplication.ViewComponents
     {
     public class CategoryMenuViewComponent : ViewComponent
         {
-        private readonly IMapper _mapper;
         private readonly IProductService _productService;
         private readonly ILogger<CategoryMenuViewComponent> _logger;
-        public CategoryMenuViewComponent(ILogger<CategoryMenuViewComponent> logger, IMapper mapper, IProductService productService)
+        public CategoryMenuViewComponent(ILogger<CategoryMenuViewComponent> logger, IProductService productService)
             {
-            _mapper = mapper;
             _productService = productService;
             _logger = logger;
             }
@@ -22,7 +18,7 @@ namespace FabstoreWebApplication.ViewComponents
             {
             try
                 {
-                var result = await _productService.GetCategoriesAsync();
+                var serviceResponse = await _productService.GetCategoriesAsync();
 
                 // --------------- DEBUG ------------------- //
 
@@ -52,9 +48,11 @@ namespace FabstoreWebApplication.ViewComponents
                 //    );
 
                 // -----------------------------------------------------------------------//
-
-                _logger.LogInformation(JsonHelper.AsJsonString(result.Categories));
-                return View(result.Categories);
+                if (!serviceResponse.Success)
+                    {
+                    _logger.LogWarning(serviceResponse.Message);
+                    }
+                return View(serviceResponse.Data);
                 }
             catch (Exception ex)
                 {

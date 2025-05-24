@@ -5,7 +5,7 @@
         type: 'GET',
         data: { variantId },
         success: function (response) {
-            if (response.itemExists) {
+            if (response.data) {
                 renderRemoveFromCart();
                 return;
             }

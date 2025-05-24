@@ -1,9 +1,9 @@
-using AutoMapper;
 using Fabstore.Domain.Interfaces.IProduct;
-using FabstoreWebApplication.ViewModels;
+using Fabstore.Domain.Models;
+using Fabstore.WebApplication.Constants;
+using Fabstore.WebApplication.Filters;
 using FabstoreWebAppliction.ViewModels.Product;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace FabstoreWebApplication.Controllers;
 
@@ -11,13 +11,12 @@ public class ProductController : Controller
     {
     private readonly ILogger<ProductController> _logger;
     private readonly IProductService _productService;
-    private readonly IMapper _mapper;
 
-    public ProductController(ILogger<ProductController> logger, IProductService productService, IMapper mapper)
+
+    public ProductController(ILogger<ProductController> logger, IProductService productService)
         {
         _logger = logger;
         _productService = productService;
-        _mapper = mapper;
         }
 
     [HttpGet]
@@ -26,16 +25,20 @@ public class ProductController : Controller
         try
             {
 
-            var productsModel = await _productService.GetProductsAsync(category);
-            List<ProductView> products = _mapper.Map<List<ProductView>>(productsModel);
-            _logger.LogInformation($"Fetched all products. Count: {products.Count}");
+            var serviceResponse = await _productService.GetProductsAsync(category);
 
-            return View(products);
+            if (!serviceResponse.Success)
+                {
+                _logger.LogWarning(serviceResponse.Message);
+                return ResponseFilter.HandleResponse(serviceResponse);
+                }
+            return View(serviceResponse.Data);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Error fetching products in Index method.");
-            return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return ResponseFilter.HandleResponse(false, "Something went wrong while getting products.", HttpStatusCode.INTERNAL_SERVER_ERROR);
+
             }
         }
 
@@ -45,61 +48,57 @@ public class ProductController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(int id, string category)
         {
-
-
         try
             {
-            var result = await _productService.GetProductDetailsAsync(category, id);
+            var serviceResponse = await _productService.GetProductDetailsAsync(category, id);
 
-            if (!result.Success)
+            if (!serviceResponse.Success)
                 {
-                return BadRequest(result.Message);
+                _logger.LogWarning(serviceResponse.Message);
+                return ResponseFilter.HandleResponse(serviceResponse);
                 }
-            var productView = _mapper.Map<ProductView>(result.Product);
-            return View(productView);
+
+            return View(serviceResponse.Data);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Error occurred while retrieving product details for ID: {ProductId}", id);
-            return StatusCode(500, "An error occurred while processing your request.");
+            return ResponseFilter.HandleResponse(false, "Something went wrong while getting product details", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-        {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
-
 
     [HttpPost]
     [Route("/api/product/filter")]
     public async Task<IActionResult> FilterProducts([FromBody] Filter filterParams)
         {
-        ViewData["Filter"] = "filter";
         try
             {
 
+            ViewData["Filter"] = "filter";
 
             // If no category provided, return all products
-            var productModel = await _productService.GetProductsAsync(filterParams.Category);
-            List<ProductView> products = _mapper.Map<List<ProductView>>(productModel);
-            _logger.LogInformation(productModel.Count().ToString());
-            products = FilterProducts(products, filterParams);
+            var serviceResponse = await _productService.GetProductsAsync(filterParams.Category);
 
-            _logger.LogInformation($"Fetched all products. Count: {products.Count}");
+            if (!serviceResponse.Success)
+                {
+                return ResponseFilter.HandleResponse(serviceResponse);
+                }
 
-            return PartialView("_ProductList", products);
+            var productModel = FilterProducts(serviceResponse.Data, filterParams);
+
+            _logger.LogInformation($"Fetched all products. Count: {productModel.Count}");
+
+            return PartialView("_ProductList", productModel);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Error fetching products in Index method.");
-            return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return ResponseFilter.HandleResponse(false, "Something went wrong while filtering products.", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
 
 
-    private List<ProductView> FilterProducts(List<ProductView> products, Filter filterParams)
+    private List<Product> FilterProducts(List<Product> products, Filter filterParams)
         {
         // DEBUG
         //var filteredProducts = products.AsEnumerable();

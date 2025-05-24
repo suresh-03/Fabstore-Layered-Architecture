@@ -5,8 +5,6 @@ using Fabstore.Domain.Interfaces.IProduct;
 using Fabstore.Domain.Interfaces.IUser;
 using Fabstore.Service;
 using FabstoreWebApplication.Configs;
-using FabstoreWebApplication.Filters;
-using FabstoreWebApplication.Mapping;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,13 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// Service to Filter ObjectResult to JsonResult
-builder.Services.AddScoped<ApiResponseFilter>();
 
-builder.Services.AddControllersWithViews(options =>
-{
-    options.Filters.Add<ApiResponseFilter>();
-});
+
+builder.Services.AddControllersWithViews();
 
 // Service for Cookie based Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -38,9 +32,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
         options.SlidingExpiration = true;
     });
-
-// Mapper for ViewModel to EFModel and Vice-Versa
-builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Adding Repository Dependencies
 builder.Services.AddScoped<IUserRepository, UserRepository>();

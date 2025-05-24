@@ -37,7 +37,7 @@ export function handleSignin(api) {
             },
             success: function (response) {
                 console.log(JSON.stringify(response));
-                if (response.status === "success") {
+                if (response.success) {
                     window.location.href = response.redirectUrl;
                 }
                 else {

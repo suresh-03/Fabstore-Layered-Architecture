@@ -1,6 +1,6 @@
-﻿using AutoMapper;
-using Fabstore.Domain.Interfaces.IProduct;
-using FabstoreWebApplication.ViewModels;
+﻿using Fabstore.Domain.Interfaces.IProduct;
+using Fabstore.WebApplication.Constants;
+using Fabstore.WebApplication.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FabstoreWebApplication.Controllers
@@ -10,13 +10,11 @@ namespace FabstoreWebApplication.Controllers
 
         private readonly ILogger<SearchController> _logger;
         private readonly IProductService _productService;
-        private readonly IMapper _mapper;
 
-        public SearchController(ILogger<SearchController> logger, IProductService productService, IMapper mapper)
+        public SearchController(ILogger<SearchController> logger, IProductService productService)
             {
             _logger = logger;
             _productService = productService;
-            _mapper = mapper;
             }
 
         [NonAction]
@@ -32,18 +30,21 @@ namespace FabstoreWebApplication.Controllers
             if (string.IsNullOrWhiteSpace(query))
                 {
                 _logger.LogWarning("Empty search query received.");
-                return BadRequest("Search query cannot be empty.");
+                return ResponseFilter.HandleResponse(false, "Invalid Query", HttpStatusCode.BAD_REQUEST);
                 }
 
             string filteredQuery = StringHelper.FilterQuery(query);
 
-            var result = await _productService.GetSearchedProductsAsync(filteredQuery);
+            var serviceResponse = await _productService.GetSearchedProductsAsync(filteredQuery);
 
-            var productsView = _mapper.Map<List<ProductView>>(result.SearchedProducts);
+            if (!serviceResponse.Success)
+                {
+                _logger.LogWarning(serviceResponse.Message);
+                return ResponseFilter.HandleResponse(serviceResponse);
+                }
 
-            _logger.LogInformation($"Fetched all matched products. Count: {productsView.Count}");
             ViewData["Query"] = query;
-            return PartialView("_ProductList", productsView);
+            return PartialView("_ProductList", serviceResponse.Data);
             }
 
         }

@@ -1,7 +1,7 @@
-﻿@using FabstoreWebApplication.ViewModels
+﻿@using Fabstore.Domain.Models
 @using FabstoreWebApplication.Helpers
 
-@model List<CartView>
+@model List<Cart>
 
 @{
     ViewData["Title"] = "My Cart";
@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="~/css/cart/index.css" asp-append-version="true" />
 }
 
-@if (!Model.Any())
+@if (Model == null)
     {
     <div class="empty-cart-container">
     <div class="empty-cart-message">

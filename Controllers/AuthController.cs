@@ -1,33 +1,29 @@
-﻿using AutoMapper;
-using Fabstore.Domain.Interfaces.IUser;
+﻿using Fabstore.Domain.Interfaces.IUser;
 using Fabstore.Domain.Models;
-using FabstoreWebApplication.Filters;
-using FabstoreWebApplication.Helpers;
-using FabstoreWebApplication.ViewModels;
+using Fabstore.WebApplication.Constants;
+using Fabstore.WebApplication.Filters;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace FabstoreWebApplication.Controllers;
 
-[ServiceFilter(typeof(ApiResponseFilter))]
 public class AuthController : Controller
     {
 
     private readonly IUserService _userService;
     private readonly ILogger<AuthController> _logger;
     private readonly IAntiforgery _antiforgery;
-    private readonly IMapper _mapper;
-    public AuthController(ILogger<AuthController> logger, IAntiforgery antiforgery, IMapper mapper, IUserService userService)
+
+    public AuthController(ILogger<AuthController> logger, IAntiforgery antiforgery, IUserService userService)
         {
 
         _logger = logger;
         _antiforgery = antiforgery;
         _userService = userService;
-        _mapper = mapper;
+
         }
     public IActionResult Index()
         {
@@ -41,49 +37,41 @@ public class AuthController : Controller
 
 
     [HttpPost]
-    public async Task<IActionResult> SignUpAPI([FromBody] UserView model)
+    public async Task<IActionResult> SignUpAPI([FromBody] User model)
         {
         try
             {
+
             await _antiforgery.ValidateRequestAsync(HttpContext);
             try
                 {
                 if (!ModelState.IsValid)
                     {
-                    return ObjectResultHelper.CreateObjectResult("error", "Invalid input data.", 400);
+                    return ResponseFilter.HandleResponse(false, "Invalid Input", HttpStatusCode.BAD_REQUEST);
                     }
 
-                var userModel = _mapper.Map<User>(model);
+                var serviceResponse = await _userService.SignupAsync(model);
 
-                var result = await _userService.SignupAsync(userModel);
-
-                if (!result.Success)
+                if (!serviceResponse.Success)
                     {
-                    return ObjectResultHelper.CreateObjectResult("error", result.Message, 400);
+                    _logger.LogWarning(serviceResponse.Message);
+                    return ResponseFilter.HandleResponse(serviceResponse);
                     }
 
-                _logger.LogInformation("User registered successfully");
-                return ObjectResultHelper.CreateObjectResult("success", result.Message, 201, Url.Action("SignIn", "Auth") ?? "");
-
+                return ResponseFilter.HandleResponse(true, "User registered successfully.", HttpStatusCode.CREATED, Url.Action("SignIn", "Auth"));
 
                 }
-            catch (DbUpdateException dbEx)
-                {
-                _logger.LogError(dbEx, "Database error occurred during signup.");
-                return ObjectResultHelper.CreateObjectResult("error", "Database error occurred during signup. Please try again later.", 500);
-                }
+
             catch (Exception ex)
                 {
                 _logger.LogError(ex, "An unexpected error occurred during signup.");
-                return ObjectResultHelper.CreateObjectResult("error", "An unexpected error occurred. Please try again later.", 500);
-
+                return ResponseFilter.HandleResponse(false, "Something went wrong. Please try again later.", HttpStatusCode.INTERNAL_SERVER_ERROR);
                 }
             }
         catch (AntiforgeryValidationException ex)
             {
             _logger.LogError(ex, "Invalid anti-forgery token.");
-            return ObjectResultHelper.CreateObjectResult("error", "Invalid anti-forgery token.", 403);
-
+            return ResponseFilter.HandleResponse(false, "Something went wrong. Please try again later.", HttpStatusCode.FORBIDDEN);
             }
         }
 
@@ -101,15 +89,15 @@ public class AuthController : Controller
             // Validate anti-forgery token (for [FromBody] manually)
             await _antiforgery.ValidateRequestAsync(HttpContext);
 
-            var result = await _userService.SigninAsync(bodyData);
+            var serviceResponse = await _userService.SigninAsync(bodyData);
 
-            if (!result.Success)
+            if (!serviceResponse.Success)
                 {
-                return ObjectResultHelper.CreateObjectResult("error", result.Message, 400);
-
+                _logger.LogWarning(serviceResponse.Message);
+                ResponseFilter.HandleResponse(serviceResponse);
                 }
 
-            var user = result.User;
+            var user = serviceResponse.Data;
 
             // Setup claims
             var claims = new List<Claim>
@@ -130,17 +118,17 @@ public class AuthController : Controller
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
-            return ObjectResultHelper.CreateObjectResult("success", "User Signed in Successfully", 200, Url.Action("Index", "Home") ?? "");
+            return ResponseFilter.HandleResponse(true, "User signedin successfully.", HttpStatusCode.OK, Url.Action("Index", "Home"));
             }
         catch (AntiforgeryValidationException ex)
             {
             _logger.LogWarning(ex, "Antiforgery validation failed.");
-            return ObjectResultHelper.CreateObjectResult("error", "Invalid request (possible CSRF attempt).", 403);
+            return ResponseFilter.HandleResponse(false, "Invalid Request", HttpStatusCode.FORBIDDEN);
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Unexpected error during signin.");
-            return ObjectResultHelper.CreateObjectResult("error", "An unexpected error occurred. Please try again later.", 500);
+            return ResponseFilter.HandleResponse(false, "Something went wrong. Please try again later.", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -151,14 +139,14 @@ public class AuthController : Controller
         try
             {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("SignIn", "Auth");
             }
         catch (Exception ex)
             {
             _logger.LogError(ex, "Unexpected error during signout.");
-            return ObjectResultHelper.CreateObjectResult("error", "An unexpected error occurred. Please try again later.", 500);
+            return ResponseFilter.HandleResponse(false, "Something went wrong. Please try again later.", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
 
-        return RedirectToAction("SignIn", "Auth");
         }
 
 
