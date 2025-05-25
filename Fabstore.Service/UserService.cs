@@ -2,17 +2,18 @@
 using Fabstore.Domain.Interfaces.IUser;
 using Fabstore.Domain.Models;
 using Fabstore.Domain.ResponseFormat;
-using Fabstore.Service.ResponseFormat;
 
 namespace Fabstore.Service;
 
 public class UserService : IUserService
     {
-    private readonly IUserRepository _repo;
+    private readonly IUserRepository _userRepository;
+    private readonly IServiceResponseFactory _responseFactory;
 
-    public UserService(IUserRepository repo)
+    public UserService(IUserRepository userRepository, IServiceResponseFactory responseFactory)
         {
-        _repo = repo;
+        _userRepository = userRepository;
+        _responseFactory = responseFactory;
         }
 
 
@@ -21,18 +22,18 @@ public class UserService : IUserService
         {
         try
             {
-            var userExists = await _repo.GetUserAsync(user.Email);
+            var userExists = await _userRepository.GetUserAsync(user.Email);
             if (userExists != null)
                 {
-                return new ServiceResponse(false, "User Already Exists", ActionType.Conflict);
+                return _responseFactory.CreateResponse(false, "User Already Exists", ActionType.Conflict);
                 }
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
             user.CreatedAt = DateTime.UtcNow;
             user.UpdatedAt = DateTime.UtcNow;
 
-            await _repo.AddUserAsync(user);
-            return new ServiceResponse(true, "User Registered Successfully", ActionType.Created);
+            await _userRepository.AddUserAsync(user);
+            return _responseFactory.CreateResponse(true, "User Registered Successfully", ActionType.Created);
             }
         catch (Exception ex)
             {
@@ -48,23 +49,23 @@ public class UserService : IUserService
                 !data.TryGetValue("Email", out var email) ||
                 !data.TryGetValue("Password", out var password))
                 {
-                return new ServiceResponse<User>(false, "Missing email or password.", ActionType.ValidationError, null);
+                return _responseFactory.CreateResponse<User>(false, "Missing email or password.", ActionType.ValidationError, null);
                 }
 
-            var user = await _repo.GetUserAsync(email);
+            var user = await _userRepository.GetUserAsync(email);
             if (user == null)
                 {
-                return new ServiceResponse<User>(false, "Invalid Email", ActionType.ValidationError, null);
+                return _responseFactory.CreateResponse<User>(false, "Invalid Email", ActionType.ValidationError, null);
                 }
 
             bool result = BCrypt.Net.BCrypt.Verify(password, user.Password);
 
             if (!result)
                 {
-                return new ServiceResponse<User>(false, "Invalid Password", ActionType.ValidationError, null);
+                return _responseFactory.CreateResponse<User>(false, "Invalid Password", ActionType.ValidationError, null);
                 }
 
-            return new ServiceResponse<User>(true, "User Signed in Successfully", ActionType.Retrieved, user);
+            return _responseFactory.CreateResponse<User>(true, "User Signed in Successfully", ActionType.Retrieved, user);
             }
         catch (Exception ex)
             {

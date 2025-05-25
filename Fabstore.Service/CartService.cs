@@ -2,17 +2,18 @@
 using Fabstore.Domain.Interfaces.ICart;
 using Fabstore.Domain.Models;
 using Fabstore.Domain.ResponseFormat;
-using Fabstore.Service.ResponseFormat;
 
 namespace Fabstore.Service;
 
 public class CartService : ICartService
     {
-    private readonly ICartRepository _repo;
+    private readonly ICartRepository _cartRepository;
+    private readonly IServiceResponseFactory _responseFactory;
 
-    public CartService(ICartRepository repo)
+    public CartService(ICartRepository cartRepository, IServiceResponseFactory responseFactory)
         {
-        _repo = repo;
+        _cartRepository = cartRepository;
+        _responseFactory = responseFactory;
         }
 
     public async Task<IServiceResponse> AddToCartAsync(string userIdentity, int productVariantId)
@@ -21,29 +22,28 @@ public class CartService : ICartService
             {
             var userId = int.Parse(userIdentity);
 
-            var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
+            var cartItem = await _cartRepository.GetCartItemAsync(userId, productVariantId);
 
             if (cartItem != null && !cartItem.IsDeleted)
                 {
-                return new ServiceResponse(false, "Product Already Exists in the Cart", ActionType.Conflict);
+                return _responseFactory.CreateResponse(false, "Product Already Exists in the Cart", ActionType.Conflict);
                 }
 
             if (cartItem != null && cartItem.IsDeleted)
                 {
-                await _repo.AddToCartAsync(cartItem);
+                await _cartRepository.AddToCartAsync(cartItem);
                 }
             else
                 {
-                // Create and add cart to both context and variant's collection
                 Cart cart = new Cart
                     {
                     VariantID = productVariantId,
                     UserID = userId
                     };
 
-                await _repo.AddToCartAsync(cart);
+                await _cartRepository.AddToCartAsync(cart);
                 }
-            return new ServiceResponse(true, "Product Added to Cart", ActionType.Created);
+            return _responseFactory.CreateResponse(true, "Product Added to Cart", ActionType.Created);
             }
         catch (Exception ex)
             {
@@ -56,12 +56,12 @@ public class CartService : ICartService
         try
             {
             var userId = int.Parse(userIdentity);
-            var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
+            var cartItem = await _cartRepository.GetCartItemAsync(userId, productVariantId);
             if (cartItem == null || cartItem.IsDeleted)
                 {
-                return new ServiceResponse<bool>(true, "Product not exists in the Cart", ActionType.Retrieved, false);
+                return _responseFactory.CreateResponse<bool>(true, "Product not exists in the Cart", ActionType.Retrieved, false);
                 }
-            return new ServiceResponse<bool>(true, "Product exists in the Cart", ActionType.Retrieved, true);
+            return _responseFactory.CreateResponse<bool>(true, "Product exists in the Cart", ActionType.Retrieved, true);
             }
         catch (Exception ex)
             {
@@ -74,12 +74,12 @@ public class CartService : ICartService
         try
             {
             var userId = int.Parse(userIdentity);
-            var cartCount = await _repo.GetCartCountAsync(userId);
+            var cartCount = await _cartRepository.GetCartCountAsync(userId);
             if (cartCount == 0)
                 {
-                return new ServiceResponse<int>(true, "No Items in Cart", ActionType.Retrieved, 0);
+                return _responseFactory.CreateResponse<int>(true, "No Items in Cart", ActionType.Retrieved, 0);
                 }
-            return new ServiceResponse<int>(true, "Items in Cart", ActionType.Retrieved, cartCount);
+            return _responseFactory.CreateResponse<int>(true, "Items in Cart", ActionType.Retrieved, cartCount);
             }
         catch (Exception ex)
             {
@@ -92,12 +92,12 @@ public class CartService : ICartService
         try
             {
             int userId = int.Parse(userIdentity);
-            var cartItems = await _repo.GetCartItemsAsync(userId);
+            var cartItems = await _cartRepository.GetCartItemsAsync(userId);
             if (cartItems == null || cartItems.Count == 0)
                 {
-                return new ServiceResponse<List<Cart>>(false, "No Items in Cart", ActionType.NotFound, null);
+                return _responseFactory.CreateResponse<List<Cart>>(false, "No Items in Cart", ActionType.NotFound, null);
                 }
-            return new ServiceResponse<List<Cart>>(true, "Items in Cart", ActionType.Retrieved, cartItems);
+            return _responseFactory.CreateResponse<List<Cart>>(true, "Items in Cart", ActionType.Retrieved, cartItems);
             }
         catch (Exception ex)
             {
@@ -110,14 +110,14 @@ public class CartService : ICartService
         try
             {
             var userId = int.Parse(userIdentity);
-            var cartItem = await _repo.GetCartItemAsync(userId, productVariantId);
+            var cartItem = await _cartRepository.GetCartItemAsync(userId, productVariantId);
             if (cartItem != null)
                 {
-                await _repo.RemoveFromCartAsync(cartItem);
-                return new ServiceResponse(true, "Product Removed from Cart", ActionType.Deleted);
+                await _cartRepository.RemoveFromCartAsync(cartItem);
+                return _responseFactory.CreateResponse(true, "Product Removed from Cart", ActionType.Deleted);
                 }
 
-            return new ServiceResponse(false, "Product Not Found in Cart", ActionType.NotFound);
+            return _responseFactory.CreateResponse(false, "Product Not Found in Cart", ActionType.NotFound);
             }
         catch (Exception ex)
             {
@@ -132,10 +132,10 @@ public class CartService : ICartService
             int userId = int.Parse(userIdentity);
             if (quantity <= 0)
                 {
-                return new ServiceResponse(false, "Quantity should be Greater than 0", ActionType.ValidationError);
+                return _responseFactory.CreateResponse(false, "Quantity should be Greater than 0", ActionType.ValidationError);
                 }
-            await _repo.UpdateCartQuantity(userId, cartId, quantity);
-            return new ServiceResponse(true, "Quantity Updated", ActionType.Updated);
+            await _cartRepository.UpdateCartQuantity(userId, cartId, quantity);
+            return _responseFactory.CreateResponse(true, "Quantity Updated", ActionType.Updated);
             }
         catch (Exception ex)
             {

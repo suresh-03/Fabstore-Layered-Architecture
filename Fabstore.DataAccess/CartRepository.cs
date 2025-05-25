@@ -23,6 +23,7 @@ namespace Fabstore.DataAccess
                 if (cartItem.IsDeleted)
                     {
                     cartItem.IsDeleted = false;
+                    cartItem.AddedAt = DateTime.UtcNow;
                     }
                 else
                     {

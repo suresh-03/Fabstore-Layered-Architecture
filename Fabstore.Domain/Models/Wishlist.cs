@@ -23,6 +23,10 @@ public class Wishlist
     public ProductVariant? Variant { get; set; }
 
     public DateTime AddedAt { get; set; } = DateTime.Now;
+
+    public bool IsDeleted { get; set; } = false;
+
+    public DateTime DeletedAt { get; set; }
     }
 
 

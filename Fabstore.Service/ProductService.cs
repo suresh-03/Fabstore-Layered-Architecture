@@ -2,7 +2,6 @@
 using Fabstore.Domain.Interfaces.IProduct;
 using Fabstore.Domain.Models;
 using Fabstore.Domain.ResponseFormat;
-using Fabstore.Service.ResponseFormat;
 using System.Collections.Concurrent;
 using static Fabstore.Framework.CommonEnums;
 
@@ -11,11 +10,13 @@ namespace Fabstore.Service;
 public class ProductService : IProductService
     {
 
-    private readonly IProductRepository _repo;
+    private readonly IProductRepository _productRepository;
+    private readonly IServiceResponseFactory _responseFactory;
 
-    public ProductService(IProductRepository repo)
+    public ProductService(IProductRepository productRepository, IServiceResponseFactory responseFactory)
         {
-        _repo = repo;
+        _productRepository = productRepository;
+        _responseFactory = responseFactory;
         }
 
 
@@ -24,8 +25,8 @@ public class ProductService : IProductService
         {
         try
             {
-            var products = await _repo.GetProductsAsync(categoy);
-            return new ServiceResponse<List<Product>>(true, "Products Fetched Successfully", ActionType.Retrieved, products);
+            var products = await _productRepository.GetProductsAsync(categoy);
+            return _responseFactory.CreateResponse<List<Product>>(true, "Products Fetched Successfully", ActionType.Retrieved, products);
             }
         catch (Exception ex)
             {
@@ -40,21 +41,21 @@ public class ProductService : IProductService
             {
             if (id <= 0)
                 {
-                return new ServiceResponse<Product>(false, $"Invalid product ID: {id}", ActionType.ValidationError, null);
+                return _responseFactory.CreateResponse<Product>(false, $"Invalid product ID: {id}", ActionType.ValidationError, null);
 
                 }
 
             if (string.IsNullOrWhiteSpace(category))
                 {
-                return new ServiceResponse<Product>(false, $"Missing category for product ID: {id}", ActionType.ValidationError, null);
+                return _responseFactory.CreateResponse<Product>(false, $"Missing category for product ID: {id}", ActionType.ValidationError, null);
                 }
 
-            var product = await _repo.GetProductDetailsAsync(category, id);
+            var product = await _productRepository.GetProductDetailsAsync(category, id);
             if (product == null)
                 {
-                return new ServiceResponse<Product>(false, $"Product not found in category {category} with ID: {id}", ActionType.NotFound, null);
+                return _responseFactory.CreateResponse<Product>(false, $"Product not found in category {category} with ID: {id}", ActionType.NotFound, null);
                 }
-            return new ServiceResponse<Product>(true, "Product Fetched Successfully", ActionType.Retrieved, product);
+            return _responseFactory.CreateResponse<Product>(true, "Product Fetched Successfully", ActionType.Retrieved, product);
 
             }
         catch (Exception ex)
@@ -68,16 +69,16 @@ public class ProductService : IProductService
         {
         try
             {
-            var products = await _repo.GetSearchedProductsAsync();
+            var products = await _productRepository.GetSearchedProductsAsync();
 
             var matchedProducts = GetMatchedProducts(query, products);
 
             if (matchedProducts.Count == 0)
                 {
-                return new ServiceResponse<List<Product>>(true, "No products found", ActionType.Retrieved, null);
+                return _responseFactory.CreateResponse<List<Product>>(true, "No products found", ActionType.Retrieved, null);
                 }
 
-            return new ServiceResponse<List<Product>>(true, "Products Fetched Successfully", ActionType.Retrieved, matchedProducts);
+            return _responseFactory.CreateResponse<List<Product>>(true, "Products Fetched Successfully", ActionType.Retrieved, matchedProducts);
 
             }
         catch (Exception ex)
@@ -128,7 +129,7 @@ public class ProductService : IProductService
         {
         try
             {
-            var categories = await _repo.GetCategoriesAsync();
+            var categories = await _productRepository.GetCategoriesAsync();
 
 
             if (categories != null)
@@ -141,11 +142,11 @@ public class ProductService : IProductService
                           g => g.AsParallel().Select(c => c.CategoryName).ToList()
                       );
 
-                return new ServiceResponse<Dictionary<string, List<string>>>(true, "Categories fetched", ActionType.Retrieved, categoriesDictionary);
+                return _responseFactory.CreateResponse<Dictionary<string, List<string>>>(true, "Categories fetched", ActionType.Retrieved, categoriesDictionary);
                 }
             else
                 {
-                return new ServiceResponse<Dictionary<string, List<string>>>(false, "No categories found", ActionType.NotFound, null);
+                return _responseFactory.CreateResponse<Dictionary<string, List<string>>>(false, "No categories found", ActionType.NotFound, null);
                 }
             }
         catch (Exception ex)
