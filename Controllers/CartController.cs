@@ -134,7 +134,7 @@ public class CartController : Controller
             }
         catch (Exception ex)
             {
-            _logger.LogError(ex, "Error occurred while fetching cart count.");
+            _logger.LogError(ex, "Error occurred while fetching cart item existence.");
             return ResponseFilter.HandleResponse(false, "Something went wrong while checking cart item existence.", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }

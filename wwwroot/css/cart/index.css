@@ -13,7 +13,7 @@ h1{
 
     #cart-container a {
         text-decoration: none;
-        color: #222;
+       
     }
 
 .cart-item {
@@ -76,26 +76,27 @@ h1{
         display: flex;
         justify-content: center;
         align-items: center;
+        color: white;
     }
 
     .cart-btns .remove-cart-btn {
         background-color: #f16318;
-        color: #e9e9e9;
-        transition: border 0.3s ease;
+        color: white;
+        transition: background-color 0.3s ease;
     }
 
         .cart-btns .remove-cart-btn:hover {
-            border: 1px solid black;
+            background-color: #f17318;
         }
 
     .cart-btns .buy-btn {
         background-color: #e9e9e9;
         color: #222;
-        transition: border 0.3s ease;
+        transition: background-color 0.3s ease;
     }
 
         .cart-btns .buy-btn:hover {
-            border: 1px solid black;
+            background-color: #f1f1f1;
         }
 /* ************************* EMPTY CART MESSAGE ********************************** */
 

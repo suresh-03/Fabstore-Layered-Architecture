@@ -24,9 +24,11 @@
     });
 }
 
-
-
-
+function toggleFavorite() {
+    $("#favorite-icon").click(function () {
+        $(this).toggleClass("favorite-icon");
+    });
+}
 
 function handleAddToCart(api) {
 
@@ -52,7 +54,6 @@ function handleAddToCart(api) {
                 if (xhr.status == 401) {
                     window.location.href = "/auth/signin";
                 }
-                alert(xhr.responseText);
             }
         });
 

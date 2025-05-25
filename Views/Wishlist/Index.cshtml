@@ -1,24 +1,24 @@
 ﻿@using Fabstore.Domain.Models
 @using FabstoreWebApplication.Helpers
 
-@model List<Cart>
+@model List<Wishlist>
 
 @{
-    ViewData["Title"] = "My Cart";
-}
+    ViewData["Title"] = "My Wishlist";
+    }
 
-@section Styles{
+    @section Styles {
     <link rel="stylesheet" href="~/css/cart/index.css" asp-append-version="true" />
-}
+    }
 
 @if (Model == null || Model.Count == 0)
     {
     <div class="empty-cart-container">
-    <div class="empty-cart-message">
-        <h2>Your cart is currently empty</h2>
-        <p>Looks like you haven’t added anything to your cart yet.</p>
-        <a asp-controller="Product" asp-action="Index" class="shop-now-btn">Continue Shopping</a>
-    </div>
+        <div class="empty-cart-message">
+            <h2>Your Wishlist is currently empty</h2>
+            <p>Looks like you haven’t added anything to your Wishlist yet.</p>
+            <a asp-controller="Product" asp-action="Index" class="shop-now-btn">Continue Shopping</a>
+        </div>
     </div>
     return;
     }
@@ -37,10 +37,10 @@
         var variantId = item.VariantID;
         var productCategory = StringHelper.CapitalizeEachWord(item.Variant?.Product?.Category?.CategoryName ?? "Category Name");
 
-        
-        <div id="@($"cart-item-{variantId}")" class="cart-item" data-cart-id="@item.CartID" data-unit-price="@productPrice">
+
+        <div id="@($"wishlist-item-{variantId}")" class="cart-item" data-cart-id="@item.WishlistID" data-unit-price="@productPrice">
             <a asp-controller="Product" asp-action="Details" asp-route-id="@variantId" asp-route-category="@productCategory">
-            <img src="@imageUrl" alt="@productName" class="product-img" />
+                <img src="@imageUrl" alt="@productName" class="product-img" />
             </a>
 
             <div class="product-details">
@@ -49,27 +49,17 @@
                 <p>Size: @productSize</p>
                 <p>Price per item: ₹@productPrice</p>
 
-                <div class="quantity-controls">
-                    <button class="qty-btn decrease">-</button>
-                    <span class="qty-value">@item.Quantity</span>
-                    <button class="qty-btn increase">+</button>
-                </div>
-
-                <p class="total-price">Total: ₹<span class="total-value">@(item.Quantity* productPrice)</span></p>
+                
                 <div class="cart-btns">
-                    <a id="remove-cart-btn" class="remove-cart-btn" data-variant-id="@variantId">Remove</a>
-                    <a id="buy-btn" class="buy-btn">Buy Now</a>
+                    <a id="add-cart-btn" class="remove-cart-btn" data-variant-id="@variantId">Add to Cart</a>
+                    <a id="remove-btn" class="buy-btn">Remove</a>
                 </div>
             </div>
         </div>
-       
+
         }
 </div>
 
-    @section Scripts {
-    <script src="~/js/cart/cart.js"></script>
-    <script src="~/js/cart/index.js"></script>
-    <script>
-        removeCartItem();
-    </script>
-    }
+    @* @section Scripts {
+  
+    } *@

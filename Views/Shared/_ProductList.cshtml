@@ -6,22 +6,27 @@
 
 
 @{
-    if (Model.Count == 0 && !string.IsNullOrEmpty(ViewData["Filter"] as string))
-        {
-        <div id="no-products">
-            <h2>Oops! We couldn't find any products that match your filter</h2>
-            <p>Try changing or clearing the filters to see more products.</p>
-        </div>
-        }
+    if (Model == null || Model.Count == 0){ 
 
-    if (Model == null && !string.IsNullOrEmpty(ViewData["Query"] as string))
-        {
-        <div id="no-products">
-            <h2>No products found for "<span><strong>@ViewData["Query"]</strong></span>"</h2>
-            <p>Try searching for something else.</p>
-        </div>
+        if (!string.IsNullOrEmpty(ViewData["Filter"] as string))
+            {
+            <div id="no-products">
+                <h2>Oops! We couldn't find any products that match your filter</h2>
+                <p>Try changing or clearing the filters to see more products.</p>
+            </div>
+            }
+        else if (!string.IsNullOrEmpty(ViewData["Query"] as string))
+            {
+            <div id="no-products">
+                <h2>No products found for "<span><strong>@ViewData["Query"]</strong></span>"</h2>
+                <p>Try searching for something else.</p>
+            </div>
+            }
         return;
         }
+   
+
+     
     var colors = Model.AsParallel().SelectMany(p => p.Variants.Select(v => v.Color)).Distinct();
     var brands = Model.AsParallel().Select(p => p.Brand.BrandName).Distinct();
     // DEBUG START

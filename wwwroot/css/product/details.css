@@ -48,6 +48,19 @@
 
 .product-details-inner{
 	width: 100%;
+	position: relative;
+}
+
+.product-details-inner .favorite-container{
+	position: absolute;
+	right: 1.5rem;
+	top: -1rem;
+	cursor: pointer;
+}
+
+.favorite-container .not-favorite-icon{
+	color: #f51260;
+	font-size: 30px;
 }
 
 .product-details-outer h2{
@@ -155,7 +168,7 @@
 	width: 100%;
 	border-radius: 1rem;
 	font-size: 1rem;
-	transition: background-color 0.3s ease, color 0.3s ease;
+	transition: background-color 0.3s ease;
 	cursor: pointer;
 	color: #e9e9e9;
 }
@@ -164,25 +177,18 @@
 	background-color: #f16318;
 }
 
-.product-details-outer .product-btns .not-favorite-container{
-	background-color: #ff527b;
-}
-
-.product-details-outer .product-btns .favorite-container{
-	background-color: white;
-	color: #ff527b;
-	border: 2px solid #ff527b;
+.product-details-outer .product-btns .buy-now-container{
+	background-color: #e9e9e9;
+	color: #222;
 }
 
 .product-details-outer .product-btns .cart-container:hover{
-	background-color: #e9e9e9;
-	color: #f16318;
-}
-.product-details-outer .product-btns .not-favorite-container:hover{
-	background-color: #e9e9e9;
-	color: #ff527b;
+	background-color: #f17318;
 }
 
+.product-details-outer .product-btns .buy-now-container:hover {
+	background-color: #f1f1f1;
+}
 
 
 @media (max-width: 900px) {

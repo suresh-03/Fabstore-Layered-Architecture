@@ -38,12 +38,19 @@
 
 
 <div class="product-details-container">
+	
 	<div id="product-details-inner-container" class="product-details-inner-container">
+		
 		<div class="product-image">
 			<img id="product-img" src="@primaryImageUrl" alt="Product Image">
 		</div>
 		<div class="product-details-outer">
 			<div class="product-details-inner">
+			<div class="favorite-container">
+				<span id="favorite-icon" class="material-symbols-outlined not-favorite-icon">
+					favorite
+				</span>
+			</div>
 			<h2 id="product-name">@StringHelper.CapitalizeEachWord(Model.ProductName)</h2>
 			<h3 id="product-brand">@StringHelper.CapitalizeEachWord(Model.Brand?.BrandName)</h3>
 				<h3 id="product-details">@StringHelper.CapitalizeEachWord(Model.Description)</h3>
@@ -90,15 +97,26 @@
 							</span>
 							<span id="cart-content">Remove From Cart</span>
 						</div>
-					</a>
-					
-					}
-				<a id="favorite-btn" class="favourite-btn">
-					<div id="favorite-container" class="not-favorite-container">
-						<span id="favorite-icon" class="material-symbols-outlined favorite-icon">
-							favorite
+						</a>
+
+						}
+					else
+						{
+						<a id="add-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
+							<div id="cart-container" class="cart-container">
+								<span id="cart-icon" class="material-symbols-outlined">
+									add_shopping_cart
+								</span>
+								<span id="cart-content">Add to Cart</span>
+							</div>
+						</a>
+						}
+					<a id="buy-now-btn" class="buy-now-btn">
+					<div id="buy-now-container" class="buy-now-container">
+						<span id="buy-now-icon" class="material-symbols-outlined buy-now-icon">
+							shopping_bag
 						</span>
-						<span id="favorite-content">Favorite</span>
+						<span id="buy-now-content">Buy Now</span>
 					</div>
 				</a>
 			</div>
@@ -112,8 +130,11 @@
 	@if(User.Identity != null && User.Identity.IsAuthenticated){
 	<script type="text/javascript">
 		handleCartExists("/api/cart/exists",@primaryVariantId);
-		handleAddToCart("/api/cart/add");
 		handleRemoveFromCart("/api/cart/remove");
 	</script>
 	}
+	<script>
+		handleAddToCart("/api/cart/add");
+		toggleFavorite();
+	</script>
 }

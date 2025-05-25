@@ -3,7 +3,10 @@ using Fabstore.DataAccess.Database;
 using Fabstore.Domain.Interfaces.ICart;
 using Fabstore.Domain.Interfaces.IProduct;
 using Fabstore.Domain.Interfaces.IUser;
+using Fabstore.Domain.Interfaces.IWishlist;
+using Fabstore.Domain.ResponseFormat;
 using Fabstore.Service;
+using Fabstore.Service.ResponseFormat;
 using FabstoreWebApplication.Configs;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -37,11 +40,18 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
+
 
 // Adding Service Dependencies
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
+
+
+// For Common Service Response
+builder.Services.AddScoped<IServiceResponseFactory, ServiceResponseFactory>();
 
 
 // For Session Handling
