@@ -127,14 +127,18 @@
 
 @section Scripts{
 	<script src="~/js/cart/cart.js"></script>
+	<script src="~/js/wishlist/index.js"></script>
 	@if(User.Identity != null && User.Identity.IsAuthenticated){
 	<script type="text/javascript">
-		handleCartExists("/api/cart/exists",@primaryVariantId);
-		handleRemoveFromCart("/api/cart/remove");
+		handleCartExists("/api/cart/exists",@primaryVariantId); 
+		handleRemoveFromCart("/api/cart/remove"); 
+		handleItemExistsInWishlist("/api/wishlist/exists",@primaryVariantId);
 	</script>
 	}
+	
 	<script>
 		handleAddToCart("/api/cart/add");
-		toggleFavorite();
+		handleWishlistAction(@primaryVariantId);
 	</script>
+	
 }

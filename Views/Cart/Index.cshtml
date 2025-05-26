@@ -57,7 +57,7 @@
 
                 <p class="total-price">Total: ₹<span class="total-value">@(item.Quantity* productPrice)</span></p>
                 <div class="cart-btns">
-                    <a id="remove-cart-btn" class="remove-cart-btn" data-variant-id="@variantId">Remove</a>
+                    <a id="remove-cart-btn" onclick="removeCartItem(@variantId)" class="remove-cart-btn" data-variant-id="@variantId">Remove</a>
                     <a id="buy-btn" class="buy-btn">Buy Now</a>
                 </div>
             </div>
@@ -69,7 +69,4 @@
     @section Scripts {
     <script src="~/js/cart/cart.js"></script>
     <script src="~/js/cart/index.js"></script>
-    <script>
-        removeCartItem();
-    </script>
     }

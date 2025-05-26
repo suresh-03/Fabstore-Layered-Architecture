@@ -5,11 +5,13 @@
 function closeDropDownMenu(event) {
     const $dropDownMenu = $("#dropdown-menu");
 
-    const isClickInsideDropDownMenu = $dropDownMenu[0].contains(event.target);
+    if ($dropDownMenu.length > 0) {
+        const isClickInsideDropDownMenu = $dropDownMenu[0].contains(event.target);
 
 
-    if (!isClickInsideDropDownMenu) {
-        $dropDownMenu.addClass("hidden");
+        if (!isClickInsideDropDownMenu) {
+            $dropDownMenu.addClass("hidden");
+        }
     }
 }
 function toggleDropdown() {

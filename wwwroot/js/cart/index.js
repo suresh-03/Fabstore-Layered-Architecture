@@ -47,13 +47,7 @@
 });
 
 
-function removeCartItem() {
-
-    $("#remove-cart-btn").click(function (e) {
-
-        var button = $(this);
-        var variantId = button.data("variant-id");
-
+function removeCartItem(variantId) {
         $.ajax({
             url: "/api/cart/remove",
             type: "GET",
@@ -70,5 +64,5 @@ function removeCartItem() {
                 console.log(xhr.responseText);
             }
         });
-    });
+
 }

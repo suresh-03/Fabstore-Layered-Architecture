@@ -24,14 +24,10 @@
     });
 }
 
-function toggleFavorite() {
-    $("#favorite-icon").click(function () {
-        $(this).toggleClass("favorite-icon");
-    });
-}
+
 
 function handleAddToCart(api) {
-
+    
     $("#add-cart-btn").click(function (event) {
         event.preventDefault(); // Prevent the default form submission
 
@@ -51,6 +47,8 @@ function handleAddToCart(api) {
             },
             error: function (xhr, status, error) {
                 console.error("Failed to add to cart:", error);
+                const response = JSON.parse(xhr.responseText);
+                alert(response.message);
                 if (xhr.status == 401) {
                     window.location.href = "/auth/signin";
                 }
@@ -92,6 +90,27 @@ function handleRemoveFromCart(api) {
 
     });
    
+}
+
+function addToCartFromWishlist(variantId) {
+    $.ajax({
+        url: "/api/cart/add",
+        type: 'GET',
+        data: { variantId },
+        success: function (response) {
+            console.log("Added to cart:", response);
+            alert("Product Added to the Cart");
+            renderCartCount('/api/cart/count');
+        },
+        error: function (xhr, status, error) {
+            console.error("Failed to add to cart:", error);
+            const response = JSON.parse(xhr.responseText);
+            alert(response.message);
+            if (xhr.status == 401) {
+                window.location.href = "/auth/signin";
+            }
+        }
+    });
 }
 
 function renderAddToCart() {
