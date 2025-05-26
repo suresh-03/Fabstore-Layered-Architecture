@@ -28,7 +28,10 @@ namespace Fabstore.DataAccess
                              .Include(p => p.Brand)
                              .Include(p => p.Category)
                              .Include(p => p.Variants)
-                                 .ThenInclude(v => v.Images).ToListAsync();
+                                 .ThenInclude(v => v.Images)
+                             .Include(p => p.Reviews)
+                             .ToListAsync();
+
 
                     }
                 else
@@ -38,6 +41,7 @@ namespace Fabstore.DataAccess
                              .Include(p => p.Category)
                              .Include(p => p.Variants)
                                  .ThenInclude(v => v.Images)
+                             .Include(p => p.Reviews)
                              .Where(p => p.Category.CategoryName == category).ToListAsync();
 
                     }
@@ -57,6 +61,7 @@ namespace Fabstore.DataAccess
                     .Include(p => p.Category)
                     .Include(p => p.Variants)
                         .ThenInclude(v => v.Images)
+                    .Include(p => p.Reviews)
                     .Where(p => p.ProductID == id);
 
                 if (!string.IsNullOrEmpty(category))
@@ -80,6 +85,7 @@ namespace Fabstore.DataAccess
                 .Include(p => p.Brand)
                 .Include(p => p.Category).ThenInclude(c => c.ParentCategory)
                 .Include(p => p.Variants).ThenInclude(v => v.Images)
+                .Include(p => p.Reviews)
                 .ToListAsync();
                 }
             catch (Exception ex)
