@@ -25,8 +25,6 @@ public class Review
     [Range(1, 5)]
     public int Rating { get; set; }  // 1 to 5
 
-    public string? ReviewText { get; set; }
-
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 
