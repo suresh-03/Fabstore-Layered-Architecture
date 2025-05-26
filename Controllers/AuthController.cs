@@ -94,7 +94,7 @@ public class AuthController : Controller
             if (!serviceResponse.Success)
                 {
                 _logger.LogWarning(serviceResponse.Message);
-                ResponseFilter.HandleResponse(serviceResponse);
+                return ResponseFilter.HandleResponse(serviceResponse);
                 }
 
             var user = serviceResponse.Data;

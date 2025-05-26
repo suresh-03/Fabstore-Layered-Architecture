@@ -3,8 +3,8 @@
 public class Filter
     {
     public string Category { get; set; } = string.Empty;
-    public string Sort { get; set; } = string.Empty;
-
+    public string SortRating { get; set; } = string.Empty;
+    public string SortPrice { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
 
     public string Brand { get; set; } = string.Empty;

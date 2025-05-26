@@ -2,6 +2,7 @@ using Fabstore.DataAccess;
 using Fabstore.DataAccess.Database;
 using Fabstore.Domain.Interfaces.ICart;
 using Fabstore.Domain.Interfaces.IProduct;
+using Fabstore.Domain.Interfaces.IReview;
 using Fabstore.Domain.Interfaces.IUser;
 using Fabstore.Domain.Interfaces.IWishlist;
 using Fabstore.Domain.ResponseFormat;
@@ -41,6 +42,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+
 
 
 // Adding Service Dependencies
@@ -48,6 +51,8 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+
 
 
 // For Common Service Response

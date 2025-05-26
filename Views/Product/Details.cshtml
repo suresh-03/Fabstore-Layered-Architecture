@@ -31,6 +31,7 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/product/details.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/review/index.css" asp-append-version="true" />
 
 }
 
@@ -56,13 +57,17 @@
 				<h3 id="product-details">@StringHelper.CapitalizeEachWord(Model.Description)</h3>
 			<div id="star-ratings" class="star-ratings">
 				
-					
-						@for (int i = 1; i <= 5; i++)
-							{
-							var starClass = i <= avgRating ? "filled-star" : "not-filled-star";
-							<span class="material-symbols-outlined @starClass">star</span>
-							}
-					
+				<div class="ratings-container">
+					@for (int i = 1; i <= 5; i++)
+					{
+						var starClass = i <= avgRating ? "filled-star" : "not-filled-star";
+						<span class="material-symbols-outlined @starClass">star</span>
+					}
+				</div>
+				<div class="review-container">
+					<span>@(Model.Reviews?.Count ?? 0) Reviews</span>
+					<span id="rate-product" class="rate-this-product">Rate this Product</span>
+				</div>
 			</div>
 			<p id="product-price" class="product-price">$@primaryVariantPrice</p>
 			<p class="tax-info">inclusive of all taxes</p>
@@ -125,9 +130,18 @@
 	</div>
 </div>
 
+<!-- RATING VIEW -->
+
+@await Html.PartialAsync("_RatingView")
+<div id="rating-overlay" class="rating-overlay"></div>
+
+
+<!---------------------->
+
 @section Scripts{
 	<script src="~/js/cart/cart.js"></script>
 	<script src="~/js/wishlist/index.js"></script>
+	<script src="~/js/review/index.js"></script>
 	@if(User.Identity != null && User.Identity.IsAuthenticated){
 	<script type="text/javascript">
 		handleCartExists("/api/cart/exists",@primaryVariantId); 
@@ -139,6 +153,8 @@
 	<script>
 		handleAddToCart("/api/cart/add");
 		handleWishlistAction(@primaryVariantId);
+		handleStarSelection("#add-rating-container");
+		handleAddReview("/api/review/add", @Model.ProductID, "#add-rating-container");
 	</script>
 	
 }

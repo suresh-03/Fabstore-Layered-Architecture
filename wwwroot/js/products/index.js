@@ -60,7 +60,8 @@ function clearAll(api) {
 
 
 function handleApplyFilter() {
-    var selectedSort = $('input[name="sort"]:checked').val() || '';
+    var selectedSortRating = $('input[name="rating"]:checked').val() || '';
+    var selectedSortPrice = $('input[name="price"]:checked').val() || '';
     var selectedColor = $('select[name="color"]').val();
     var selectedBrand = $('select[name="brand"]').val();
     var minPrice = parseFloat($('#priceRange').attr('min'));
@@ -69,7 +70,8 @@ function handleApplyFilter() {
     var category = params.get('category') || '';
     const bodyData = {
         category,
-        sort: selectedSort,
+        sortRating: selectedSortRating,
+        sortPrice: selectedSortPrice,
         color: selectedColor,
         brand: selectedBrand,
         minPrice,

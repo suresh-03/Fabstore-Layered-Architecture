@@ -76,7 +76,6 @@ public class ProductController : Controller
 
             ViewData["Filter"] = "filter";
 
-            // If no category provided, return all products
             var serviceResponse = await _productService.GetProductsAsync(filterParams.Category);
 
             if (!serviceResponse.Success)
@@ -126,9 +125,21 @@ public class ProductController : Controller
 
         var filteredList = filteredProducts.ToList();
 
-        if (!string.IsNullOrEmpty(filterParams.Sort))
+        if (!string.IsNullOrEmpty(filterParams.SortRating))
             {
-            if (filterParams.Sort.Equals("low-high"))
+            if (filterParams.SortRating.Equals("low-high"))
+                {
+                filteredList = filteredList.OrderBy(p => p.Reviews.Average(r => r.Rating)).ToList();
+                }
+            else
+                {
+                filteredList = filteredList.OrderByDescending(p => p.Reviews.Average(r => r.Rating)).ToList();
+                }
+            }
+
+        if (!string.IsNullOrEmpty(filterParams.SortPrice))
+            {
+            if (filterParams.SortPrice.Equals("low-high"))
                 {
                 filteredList = filteredList.OrderBy(p => p.Variants.Min(v => v.Price)).ToList();
                 }

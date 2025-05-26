@@ -4,4 +4,5 @@
 
 .product-img{
     height: 12rem;
+    object-fit: unset;
 }

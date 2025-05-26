@@ -1,10 +1,11 @@
-.product-details-container{
-	width: 80%;
-	height: 45rem;
-	margin: auto;
-	display: flex;
-	justify-content: center;
-	font-size: 1.2vw;
+.product-details-container {
+    width: 80%;
+    height: 45rem;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    font-size: 1.2vw;
+    position: relative;
 }
 
 .product-details-inner-container{
@@ -83,7 +84,27 @@
 	margin-left: 2%;
 	font-size: 1rem;
 	display: flex;
+	gap: 1rem;
+	align-items: center;
 }
+
+.product-details-outer .review-container{
+	display: flex;
+	gap: 2rem;
+	align-items: center;
+}
+
+.review-container .rate-this-product {
+	font-size: 0.9rem;
+	color: #f16318;
+	transition: color 0.3s ease;
+	cursor: pointer;
+}
+
+.review-container .rate-this-product:hover {
+	color: #222;
+}
+
 
 .product-details-outer #ratings-count{
 	margin-left: 1rem;
