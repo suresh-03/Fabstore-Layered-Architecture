@@ -62,7 +62,7 @@ builder.Services.AddScoped<IServiceResponseFactory, ServiceResponseFactory>();
 // For Session Handling
 builder.Services.AddSession();
 
-
+builder.Services.AddMemoryCache();
 
 // Service for DBContext
 builder.Services.AddDbContext<AppDbContext>(options =>

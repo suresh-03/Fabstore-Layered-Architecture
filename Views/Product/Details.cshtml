@@ -1,47 +1,27 @@
 @using Fabstore.Domain.Models
 @model Product
-
 @using FabstoreWebApplication.Helpers
 @using System.Security.Claims
-
-
 @{
 	ViewData["Title"] = "Product Details";
-
 	var primaryVariant = Model.Variants?.FirstOrDefault();
 	var primaryImage = primaryVariant?.Images?.FirstOrDefault(i => i.IsPrimary) 
 								?? primaryVariant?.Images?.FirstOrDefault();
-
 	var primaryVariantSize = primaryVariant?.Size;
 	var primaryVariantPrice = primaryVariant?.Price;
 	var primaryVariantColor = primaryVariant?.Color;
 	var primaryImageUrl = primaryImage?.ImageUrl;
 	var primaryVariantId = primaryVariant?.VariantID;
-
 	var avgRating = (Model.Reviews != null && Model.Reviews.Count > 0)
 		? Math.Round(Model.Reviews.Average(r => r.Rating))
 		: 5;
-
-	
 }
-
-
-
-
-
 @section Styles {
     <link rel="stylesheet" href="~/css/product/details.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/review/index.css" asp-append-version="true" />
-
 }
-
-
-
-
 <div class="product-details-container">
-	
 	<div id="product-details-inner-container" class="product-details-inner-container">
-		
 		<div class="product-image">
 			<img id="product-img" src="@primaryImageUrl" alt="Product Image">
 		</div>
@@ -56,7 +36,6 @@
 			<h3 id="product-brand">@StringHelper.CapitalizeEachWord(Model.Brand?.BrandName)</h3>
 				<h3 id="product-details">@StringHelper.CapitalizeEachWord(Model.Description)</h3>
 			<div id="star-ratings" class="star-ratings">
-				
 				<div class="ratings-container">
 					@for (int i = 1; i <= 5; i++)
 					{
@@ -84,7 +63,6 @@
 			<div id="product-btns" class="product-btns">
 				<!-- href added dynamically -->
 				@if(User.Identity != null && User.Identity.IsAuthenticated){
-			
 				<a id="add-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
 					<div id="cart-container" class="cart-container">
 						<span id="cart-icon" class="material-symbols-outlined">
@@ -93,8 +71,6 @@
 						<span id="cart-content">Add to Cart</span>
 					</div>
 				</a>
-				
-				
 					<a id="remove-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
 						<div id="cart-container" class="cart-container">
 							<span id="cart-icon" class="material-symbols-outlined">
@@ -103,7 +79,6 @@
 							<span id="cart-content">Remove From Cart</span>
 						</div>
 						</a>
-
 						}
 					else
 						{
@@ -129,15 +104,10 @@
 		</div>
 	</div>
 </div>
-
 <!-- RATING VIEW -->
-
 @await Html.PartialAsync("_RatingView")
 <div id="rating-overlay" class="rating-overlay"></div>
-
-
 <!---------------------->
-
 @section Scripts{
 	<script src="~/js/cart/cart.js"></script>
 	<script src="~/js/wishlist/index.js"></script>
@@ -149,12 +119,10 @@
 		handleItemExistsInWishlist("/api/wishlist/exists",@primaryVariantId);
 	</script>
 	}
-	
 	<script>
 		handleAddToCart("/api/cart/add");
 		handleWishlistAction(@primaryVariantId);
 		handleStarSelection("#add-rating-container");
 		handleAddReview("/api/review/add", @Model.ProductID, "#add-rating-container");
 	</script>
-	
 }
