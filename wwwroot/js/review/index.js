@@ -3,7 +3,8 @@
     $("#rating-overlay").toggleClass("active");
 }
 
-function reloadCurrentPage() {
+async function reloadCurrentPage() {
+    await sleep(200);
     window.location.reload();
 }
 
@@ -113,9 +114,13 @@ function handleAddReview(api, productId, containerSelector) {
             }),
             success:async function (response) {
                 if (response.success) {
-                    $container.find(".rating-feedback").css("display", "block");
+                    const $feedback = $container.find(".rating-feedback");
+                    $feedback.addClass("visible");
+
                     await sleep(2000);
-                    $container.find(".rating-feedback").css("display", "none");
+
+                    $feedback.removeClass("visible");
+
                 } else {
                     console.log(response);
                     alert(response.message);

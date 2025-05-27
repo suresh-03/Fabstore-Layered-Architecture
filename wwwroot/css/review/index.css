@@ -29,8 +29,21 @@
 
 .rating-feedback {
     margin-bottom: 3rem;
-    display: none;
+/*    display: none;*/
 }
+
+.rating-feedback {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    height: 0;
+    overflow: hidden;
+}
+.rating-feedback.visible {
+        opacity: 1;
+        height: auto; /* optional if you want to animate height as well */
+}
+
+
 
 
 .rating-description-container,
@@ -65,7 +78,7 @@
 }
 
 .rating-overlay {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
