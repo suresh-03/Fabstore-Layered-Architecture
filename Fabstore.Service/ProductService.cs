@@ -2,6 +2,8 @@
 using Fabstore.Domain.Interfaces.IProduct;
 using Fabstore.Domain.Models;
 using Fabstore.Domain.ResponseFormat;
+using Fabstore.Service.Constants;
+using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using static Fabstore.Framework.CommonEnums;
 
@@ -12,11 +14,12 @@ public class ProductService : IProductService
 
     private readonly IProductRepository _productRepository;
     private readonly IServiceResponseFactory _responseFactory;
-
-    public ProductService(IProductRepository productRepository, IServiceResponseFactory responseFactory)
+    private readonly IMemoryCache _memoryCache;
+    public ProductService(IProductRepository productRepository, IServiceResponseFactory responseFactory, IMemoryCache memoryCache)
         {
         _productRepository = productRepository;
         _responseFactory = responseFactory;
+        _memoryCache = memoryCache;
         }
 
 
@@ -129,9 +132,51 @@ public class ProductService : IProductService
         {
         try
             {
-            var categories = await _productRepository.GetCategoriesAsync();
+            List<Category> categories;
 
+            // Check if categories are cached otherwise fetch from repository
+            if (!_memoryCache.TryGetValue(CacheKeys.CATEGORIES, out categories))
+                {
+                categories = await _productRepository.GetCategoriesAsync();
+                if (categories != null)
+                    {
+                    var cacheEntryOptions = new MemoryCacheEntryOptions
+                        {
+                        SlidingExpiration = TimeSpan.FromMinutes(10)
+                        };
 
+                    _memoryCache.Set(CacheKeys.CATEGORIES, categories, cacheEntryOptions);
+                    }
+                }
+
+            // --------------- DEBUG ------------------- //
+
+            //var categoriesDictionary = categoriesDb
+            //    .AsParallel()
+            //    .WithDegreeOfParallelism(4)
+            //    .GroupBy(c =>
+            //    {
+            //        Console.WriteLine($"Grouping category '{c.CategoryName}' with ParentID {c.ParentCategoryID} on Thread {Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
+            //        return c.ParentCategoryID;
+            //    })
+            //    .ToDictionary(
+            //        g =>
+            //        {
+            //            Console.WriteLine($"Processing group key '{g.Key}' on Thread {Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
+            //            return ((GenderType)g.Key).ToString();
+            //        },
+            //        g =>
+            //        {
+            //            var categoryNames = g.AsParallel().Select(c =>
+            //            {
+            //                Console.WriteLine($"Selecting '{c.CategoryName}' on Thread {Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
+            //                return c.CategoryName;
+            //            }).ToList();
+            //            return categoryNames;
+            //        }
+            //    );
+
+            // -----------------------------------------------------------------------//
             if (categories != null)
                 {
                 var categoriesDictionary = categories
