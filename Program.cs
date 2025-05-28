@@ -62,6 +62,7 @@ builder.Services.AddScoped<IServiceResponseFactory, ServiceResponseFactory>();
 // For Session Handling
 builder.Services.AddSession();
 
+// For Caching
 builder.Services.AddMemoryCache();
 
 // Service for DBContext

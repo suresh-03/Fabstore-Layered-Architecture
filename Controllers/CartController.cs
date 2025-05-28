@@ -7,30 +7,38 @@ using System.Security.Claims;
 
 namespace FabstoreWebApplication.Controllers;
 
+// Controller for handling cart-related actions for authenticated users
 [Authorize]
 public class CartController : Controller
     {
 
+    // Logger for logging cart events and errors
     private readonly ILogger<CartController> _logger;
+    // Service for cart-related business logic
     private readonly ICartService _cartService;
 
+    // Constructor with dependency injection
     public CartController(ILogger<CartController> logger, ICartService cartService)
         {
         _logger = logger;
         _cartService = cartService;
         }
 
+    // Displays the cart page with the user's cart items
     public async Task<IActionResult> Index()
         {
         try
             {
+            // Get the user's identity from claims
             var userIdentity = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+            // Check if the user is authenticated
             if (!IsUserAuthenticated(userIdentity))
                 {
                 return ResponseFilter.HandleResponse(false, "User is not Authenticated", HttpStatusCode.UNAUTHORIZED);
                 }
 
+            // Fetch cart items for the user
             var serviceResponse = await _cartService.GetCartItemsAsync(userIdentity);
 
             return View(serviceResponse.Data);
@@ -43,6 +51,7 @@ public class CartController : Controller
 
         }
 
+    // Adds a product variant to the user's cart
     [HttpGet]
     [Route("api/cart/add")]
     public async Task<IActionResult> AddToCart([FromQuery] int variantId)
@@ -68,6 +77,7 @@ public class CartController : Controller
             }
         }
 
+    // Removes a product variant from the user's cart
     [HttpGet]
     [Route("api/cart/remove")]
     public async Task<IActionResult> RemoveFromCart(int variantId)
@@ -92,7 +102,7 @@ public class CartController : Controller
             }
         }
 
-
+    // Gets the count of items in the user's cart
     [HttpGet]
     [Route("api/cart/count")]
     public async Task<IActionResult> GetCartCount()
@@ -116,8 +126,7 @@ public class CartController : Controller
             }
         }
 
-
-
+    // Checks if a product variant exists in the user's cart
     [HttpGet]
     [Route("api/cart/exists")]
     public async Task<IActionResult> ItemExistsInCart([FromQuery] int variantId)
@@ -139,6 +148,7 @@ public class CartController : Controller
             }
         }
 
+    // Updates the quantity of a specific cart item for the user
     [HttpPost]
     [Route("api/cart/updatequantity")]
     public async Task<IActionResult> UpdateCartQuantity([FromBody] CartQuantityModel cartModel)
@@ -160,6 +170,7 @@ public class CartController : Controller
             }
         }
 
+    // Checks if the user is authenticated based on their identity
     private bool IsUserAuthenticated(string userIdentity)
         {
         if (string.IsNullOrEmpty(userIdentity))
@@ -173,10 +184,9 @@ public class CartController : Controller
 
     }
 
+// Model for updating cart item quantity
 public class CartQuantityModel
     {
     public int CartId { get; set; } = 0;
     public int Quantity { get; set; } = 0;
     }
-
-

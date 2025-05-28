@@ -2,127 +2,150 @@
 @model Product
 @using FabstoreWebApplication.Helpers
 @using System.Security.Claims
+
 @{
-	ViewData["Title"] = "Product Details";
-	var primaryVariant = Model.Variants?.FirstOrDefault();
-	var primaryImage = primaryVariant?.Images?.FirstOrDefault(i => i.IsPrimary) 
-								?? primaryVariant?.Images?.FirstOrDefault();
-	var primaryVariantSize = primaryVariant?.Size;
-	var primaryVariantPrice = primaryVariant?.Price;
-	var primaryVariantColor = primaryVariant?.Color;
-	var primaryImageUrl = primaryImage?.ImageUrl;
-	var primaryVariantId = primaryVariant?.VariantID;
-	var avgRating = (Model.Reviews != null && Model.Reviews.Count > 0)
-		? Math.Round(Model.Reviews.Average(r => r.Rating))
-		: 5;
-}
-@section Styles {
+    // =================== PAGE SETUP & PRIMARY PRODUCT DATA ===================
+    ViewData["Title"] = "Product Details";
+    var primaryVariant = Model.Variants?.FirstOrDefault();
+    var primaryImage = primaryVariant?.Images?.FirstOrDefault(i => i.IsPrimary)
+                                ?? primaryVariant?.Images?.FirstOrDefault();
+    var primaryVariantSize = primaryVariant?.Size;
+    var primaryVariantPrice = primaryVariant?.Price;
+    var primaryVariantColor = primaryVariant?.Color;
+    var primaryImageUrl = primaryImage?.ImageUrl;
+    var primaryVariantId = primaryVariant?.VariantID;
+    var avgRating = (Model.Reviews != null && Model.Reviews.Count > 0)
+        ? Math.Round(Model.Reviews.Average(r => r.Rating))
+        : 5;
+    }
+
+    @section Styles {
+    <!-- =================== PAGE-SPECIFIC STYLES =================== -->
     <link rel="stylesheet" href="~/css/product/details.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/review/index.css" asp-append-version="true" />
-}
+    }
+
+<!-- =================== PRODUCT DETAILS MAIN CONTAINER =================== -->
 <div class="product-details-container">
-	<div id="product-details-inner-container" class="product-details-inner-container">
-		<div class="product-image">
-			<img id="product-img" src="@primaryImageUrl" alt="Product Image">
-		</div>
-		<div class="product-details-outer">
-			<div class="product-details-inner">
-			<div class="favorite-container">
-				<span id="favorite-icon" class="material-symbols-outlined not-favorite-icon">
-					favorite
-				</span>
-			</div>
-			<h2 id="product-name">@StringHelper.CapitalizeEachWord(Model.ProductName)</h2>
-			<h3 id="product-brand">@StringHelper.CapitalizeEachWord(Model.Brand?.BrandName)</h3>
-				<h3 id="product-details">@StringHelper.CapitalizeEachWord(Model.Description)</h3>
-			<div id="star-ratings" class="star-ratings">
-				<div class="ratings-container">
-					@for (int i = 1; i <= 5; i++)
-					{
-						var starClass = i <= avgRating ? "filled-star" : "not-filled-star";
-						<span class="material-symbols-outlined @starClass">star</span>
-					}
-				</div>
-				<div class="review-container">
-					<span>@(Model.Reviews?.Count ?? 0) Reviews</span>
-					<span id="rate-product" class="rate-this-product">Rate this Product</span>
-				</div>
-			</div>
-			<p id="product-price" class="product-price">$@primaryVariantPrice</p>
-			<p class="tax-info">inclusive of all taxes</p>
-			<p class="colors-info">Available Colors</p>
-			<div class="product-colors">
-				@foreach (var variant in Model.Variants)
-						{
-						var colorStyle = "background-color:" + variant.Color;
-						<div class="color-outer">
-							<div class="color" style=@colorStyle></div>
-						</div>
-						}
-				</div>
-			<div id="product-btns" class="product-btns">
-				<!-- href added dynamically -->
-				@if(User.Identity != null && User.Identity.IsAuthenticated){
-				<a id="add-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
-					<div id="cart-container" class="cart-container">
-						<span id="cart-icon" class="material-symbols-outlined">
-							add_shopping_cart
-						</span>
-						<span id="cart-content">Add to Cart</span>
-					</div>
-				</a>
-					<a id="remove-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
-						<div id="cart-container" class="cart-container">
-							<span id="cart-icon" class="material-symbols-outlined">
-								remove_shopping_cart
-							</span>
-							<span id="cart-content">Remove From Cart</span>
-						</div>
-						</a>
-						}
-					else
-						{
-						<a id="add-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
-							<div id="cart-container" class="cart-container">
-								<span id="cart-icon" class="material-symbols-outlined">
-									add_shopping_cart
-								</span>
-								<span id="cart-content">Add to Cart</span>
-							</div>
-						</a>
-						}
-					<a id="buy-now-btn" class="buy-now-btn">
-					<div id="buy-now-container" class="buy-now-container">
-						<span id="buy-now-icon" class="material-symbols-outlined buy-now-icon">
-							shopping_bag
-						</span>
-						<span id="buy-now-content">Buy Now</span>
-					</div>
-				</a>
-			</div>
-			</div>
-		</div>
-	</div>
+    <div id="product-details-inner-container" class="product-details-inner-container">
+        <!-- Product Image Section -->
+        <div class="product-image">
+            <img id="product-img" src="@primaryImageUrl" alt="Product Image">
+        </div>
+        <!-- Product Details Section -->
+        <div class="product-details-outer">
+            <div class="product-details-inner">
+                <!-- Favorite/Wishlist Icon -->
+                <div class="favorite-container">
+                    <span id="favorite-icon" class="material-symbols-outlined not-favorite-icon">
+                        favorite
+                    </span>
+                </div>
+                <!-- Product Name, Brand, and Description -->
+                <h2 id="product-name">@StringHelper.CapitalizeEachWord(Model.ProductName)</h2>
+                <h3 id="product-brand">@StringHelper.CapitalizeEachWord(Model.Brand?.BrandName)</h3>
+                <h3 id="product-details">@StringHelper.CapitalizeEachWord(Model.Description)</h3>
+                <!-- Star Ratings and Review Count -->
+                <div id="star-ratings" class="star-ratings">
+                    <div class="ratings-container">
+                        @for (int i = 1; i <= 5; i++)
+                            {
+                            var starClass = i <= avgRating ? "filled-star" : "not-filled-star";
+                            <span class="material-symbols-outlined @starClass">star</span>
+                            }
+                    </div>
+                    <div class="review-container">
+                        <span>@(Model.Reviews?.Count ?? 0) Reviews</span>
+                        <span id="rate-product" class="rate-this-product">Rate this Product</span>
+                    </div>
+                </div>
+                <!-- Price and Tax Info -->
+                <p id="product-price" class="product-price">$@primaryVariantPrice</p>
+                <p class="tax-info">inclusive of all taxes</p>
+                <!-- Color Options -->
+                <p class="colors-info">Available Colors</p>
+                <div class="product-colors">
+                    @foreach (var variant in Model.Variants)
+                        {
+                        var colorStyle = "background-color:" + variant.Color;
+                        <div class="color-outer">
+                            <div class="color" style=@colorStyle></div>
+                        </div>
+                        }
+                </div>
+                <!-- =================== PRODUCT ACTION BUTTONS =================== -->
+                <div id="product-btns" class="product-btns">
+                    <!-- Add/Remove Cart Buttons (Authenticated/Unauthenticated) -->
+                    <!-- href added dynamically -->
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                        <a id="add-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
+                            <div id="cart-container" class="cart-container">
+                                <span id="cart-icon" class="material-symbols-outlined">
+                                    add_shopping_cart
+                                </span>
+                                <span id="cart-content">Add to Cart</span>
+                            </div>
+                        </a>
+                        <a id="remove-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
+                            <div id="cart-container" class="cart-container">
+                                <span id="cart-icon" class="material-symbols-outlined">
+                                    remove_shopping_cart
+                                </span>
+                                <span id="cart-content">Remove From Cart</span>
+                            </div>
+                        </a>
+                        }
+                    else
+                        {
+                        <a id="add-cart-btn" class="cart-btn" data-variant-id=@primaryVariantId href="#">
+                            <div id="cart-container" class="cart-container">
+                                <span id="cart-icon" class="material-symbols-outlined">
+                                    add_shopping_cart
+                                </span>
+                                <span id="cart-content">Add to Cart</span>
+                            </div>
+                        </a>
+                        }
+                    <!-- Buy Now Button -->
+                    <a id="buy-now-btn" class="buy-now-btn">
+                        <div id="buy-now-container" class="buy-now-container">
+                            <span id="buy-now-icon" class="material-symbols-outlined buy-now-icon">
+                                shopping_bag
+                            </span>
+                            <span id="buy-now-content">Buy Now</span>
+                        </div>
+                    </a>
+                </div>
+                <!-- =================== END PRODUCT ACTION BUTTONS =================== -->
+            </div>
+        </div>
+    </div>
 </div>
-<!-- RATING VIEW -->
+
+<!-- =================== RATING MODAL PARTIAL VIEW =================== -->
 @await Html.PartialAsync("_RatingView")
 <div id="rating-overlay" class="rating-overlay"></div>
-<!---------------------->
-@section Scripts{
-	<script src="~/js/cart/cart.js"></script>
-	<script src="~/js/wishlist/index.js"></script>
-	<script src="~/js/review/index.js"></script>
-	@if(User.Identity != null && User.Identity.IsAuthenticated){
-	<script type="text/javascript">
-		handleCartExists("/api/cart/exists",@primaryVariantId); 
-		handleRemoveFromCart("/api/cart/remove"); 
-		handleItemExistsInWishlist("/api/wishlist/exists",@primaryVariantId);
-	</script>
-	}
-	<script>
-		handleAddToCart("/api/cart/add");
-		handleWishlistAction(@primaryVariantId);
-		handleStarSelection("#add-rating-container");
-		handleAddReview("/api/review/add", @Model.ProductID, "#add-rating-container");
-	</script>
-}
+
+<!-- =================== PAGE SCRIPTS =================== -->
+    @section Scripts {
+    <script src="~/js/cart/cart.js"></script>
+    <script src="~/js/wishlist/index.js"></script>
+    <script src="~/js/review/index.js"></script>
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+        <script type="text/javascript">
+            // Cart and Wishlist existence checks for authenticated users
+            handleCartExists("/api/cart/exists",@primaryVariantId);
+            handleRemoveFromCart("/api/cart/remove");
+            handleItemExistsInWishlist("/api/wishlist/exists",@primaryVariantId);
+        </script>
+        }
+    <script>
+        // Add to cart, wishlist, rating, and review handlers
+        handleAddToCart("/api/cart/add");
+        handleWishlistAction(@primaryVariantId);
+        handleStarSelection("#add-rating-container");
+        handleAddReview("/api/review/add", @Model.ProductID, "#add-rating-container");
+    </script>
+    }

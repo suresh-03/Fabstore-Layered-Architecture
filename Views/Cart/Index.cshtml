@@ -4,31 +4,36 @@
 @model List<Cart>
 
 @{
+    // =================== PAGE TITLE ===================
     ViewData["Title"] = "My Cart";
-}
+    }
 
-@section Styles{
+    @section Styles {
+    <!-- =================== PAGE-SPECIFIC STYLES =================== -->
     <link rel="stylesheet" href="~/css/cart/index.css" asp-append-version="true" />
-}
+    }
 
+<!-- =================== EMPTY CART MESSAGE =================== -->
 @if (Model == null || Model.Count == 0)
     {
     <div class="empty-cart-container">
-    <div class="empty-cart-message">
-        <h2>Your cart is currently empty</h2>
-        <p>Looks like you haven’t added anything to your cart yet.</p>
-        <a asp-controller="Product" asp-action="Index" class="shop-now-btn">Continue Shopping</a>
-    </div>
+        <div class="empty-cart-message">
+            <h2>Your cart is currently empty</h2>
+            <p>Looks like you haven’t added anything to your cart yet.</p>
+            <a asp-controller="Product" asp-action="Index" class="shop-now-btn">Continue Shopping</a>
+        </div>
     </div>
     return;
     }
 
-
+<!-- =================== CART HEADER =================== -->
 <h1>My Cart</h1>
 
+<!-- =================== CART ITEMS LISTING =================== -->
 <div id="cart-container">
     @foreach (var item in Model)
         {
+        // Extract product and variant details for display
         var productPrice = item.Variant?.Price;
         var imageUrl = item.Variant?.Images?.Where(i => i.VariantID == item.VariantID).Select(i => i.ImageUrl).FirstOrDefault();
         var productName = StringHelper.CapitalizeEachWord(item.Variant?.Product?.ProductName ?? "Product Name");
@@ -37,10 +42,10 @@
         var variantId = item.VariantID;
         var productCategory = StringHelper.CapitalizeEachWord(item.Variant?.Product?.Category?.CategoryName ?? "Category Name");
 
-        
         <div id="@($"cart-item-{variantId}")" class="cart-item" data-cart-id="@item.CartID" data-unit-price="@productPrice">
+            <!-- Product image and link to details page -->
             <a asp-controller="Product" asp-action="Details" asp-route-id="@variantId" asp-route-category="@productCategory">
-            <img src="@imageUrl" alt="@productName" class="product-img" />
+                <img src="@imageUrl" alt="@productName" class="product-img" />
             </a>
 
             <div class="product-details">
@@ -49,6 +54,7 @@
                 <p>Size: @productSize</p>
                 <p>Price per item: ₹@productPrice</p>
 
+                <!-- =================== QUANTITY CONTROLS =================== -->
                 <div class="quantity-controls">
                     <button class="qty-btn decrease">-</button>
                     <span class="qty-value">@item.Quantity</span>
@@ -56,17 +62,19 @@
                 </div>
 
                 <p class="total-price">Total: ₹<span class="total-value">@(item.Quantity* productPrice)</span></p>
+
+                <!-- =================== CART ACTION BUTTONS =================== -->
                 <div class="cart-btns">
                     <a id="remove-cart-btn" onclick="removeCartItem(@variantId)" class="remove-cart-btn" data-variant-id="@variantId">Remove</a>
                     <a id="buy-btn" class="buy-btn">Buy Now</a>
                 </div>
             </div>
         </div>
-       
         }
 </div>
 
     @section Scripts {
+    <!-- =================== PAGE-SPECIFIC SCRIPTS =================== -->
     <script src="~/js/cart/cart.js"></script>
     <script src="~/js/cart/index.js"></script>
     }

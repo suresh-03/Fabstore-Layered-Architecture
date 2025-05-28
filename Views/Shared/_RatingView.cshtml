@@ -1,26 +1,35 @@
-﻿
-
+﻿<!-- =================== RATING MODAL CONTAINER =================== -->
 <div id="add-rating-container" class="add-rating-container">
     <div class="add-rating-inner-container">
+        <!-- Close button for the rating modal -->
         <div class="close-review-model">
-            <span id ="close-review-model" class="material-symbols-outlined">
-               close
+            <span id="close-review-model" class="material-symbols-outlined">
+                close
             </span>
         </div>
+        <!-- Feedback message shown after rating submission -->
         <h2 class="rating-feedback">Thank you for the Response!</h2>
-    <div class="ratings-stars">
+
+        <!-- =================== STAR RATING SELECTION =================== -->
+        <div class="ratings-stars">
             <span id="star-1" class="material-symbols-outlined not-filled-star rating-star">star</span>
             <span id="star-2" class="material-symbols-outlined not-filled-star rating-star">star</span>
             <span id="star-3" class="material-symbols-outlined not-filled-star rating-star">star</span>
             <span id="star-4" class="material-symbols-outlined not-filled-star rating-star">star</span>
             <span id="star-5" class="material-symbols-outlined not-filled-star rating-star">star</span>
-    </div>
-    <div class="rating-description-container">
-        <span class="rating-description">Select the Rating</span>
-    </div>
-    <div class="submit-container">
-        <button id="rating-submit-btn" class="submit-button">Submit</button>
-    </div>
+        </div>
+
+        <!-- =================== RATING DESCRIPTION =================== -->
+        <div class="rating-description-container">
+            <span class="rating-description">Select the Rating</span>
+        </div>
+
+        <!-- =================== SUBMIT BUTTON =================== -->
+        <div class="submit-container">
+            <button id="rating-submit-btn" class="submit-button">Submit</button>
+        </div>
     </div>
 </div>
+
+<!-- =================== MODAL OVERLAY =================== -->
 <div id="rating-overlay" class="rating-overlay"></div>

@@ -4,15 +4,17 @@
 @model List<Wishlist>
 
 @{
+    // Set the page title
     ViewData["Title"] = "My Wishlist";
     }
 
     @section Styles {
+    <!-- Wishlist and cart specific styles -->
     <link rel="stylesheet" href="~/css/cart/index.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/wishlist/index.css" asp-append-version="true" />
-
     }
 
+<!-- =================== EMPTY WISHLIST MESSAGE =================== -->
 @if (Model == null || Model.Count == 0)
     {
     <div class="empty-cart-container">
@@ -25,12 +27,14 @@
     return;
     }
 
-
+<!-- =================== WISHLIST HEADER =================== -->
 <h1>My Wishlist</h1>
 
+<!-- =================== WISHLIST ITEMS LISTING =================== -->
 <div id="cart-container">
     @foreach (var item in Model)
         {
+        // Extract product and variant details for display
         var productPrice = item.Variant?.Price;
         var imageUrl = item.Variant?.Images?.Where(i => i.VariantID == item.VariantID).Select(i => i.ImageUrl).FirstOrDefault();
         var productName = StringHelper.CapitalizeEachWord(item.Variant?.Product?.ProductName ?? "Product Name");
@@ -39,8 +43,8 @@
         var variantId = item.VariantID;
         var productCategory = StringHelper.CapitalizeEachWord(item.Variant?.Product?.Category?.CategoryName ?? "Category Name");
 
-
         <div id="@($"wishlist-item-{variantId}")" class="cart-item" data-cart-id="@item.WishlistID" data-unit-price="@productPrice">
+            <!-- Product image and link to details page -->
             <a asp-controller="Product" asp-action="Details" asp-route-id="@variantId" asp-route-category="@productCategory">
                 <img src="@imageUrl" alt="@productName" class="product-img" />
             </a>
@@ -51,18 +55,18 @@
                 <p>Size: @productSize</p>
                 <p>Price: ₹@productPrice</p>
 
-                
+                <!-- Wishlist action buttons: Add to Cart and Remove -->
                 <div class="cart-btns wishlist-btns">
                     <a id="@($"add-cart-btn-{variantId}")" onclick="addToCartFromWishlist(@variantId)" class="remove-cart-btn" data-variant-id="@variantId">Add to Cart</a>
                     <a id="@($"remove-wishlist-btn-{variantId}")" onclick="removeWishlistItem(@variantId)" data-variant-id="@variantId" class="buy-btn">Remove</a>
                 </div>
             </div>
         </div>
-
         }
 </div>
 
-     @section Scripts {
-        <script src="~/js/cart/cart.js"></script>
-        <script src="~/js/wishlist/index.js"></script>
-    } 
+    @section Scripts {
+    <!-- Wishlist and cart specific scripts -->
+    <script src="~/js/cart/cart.js"></script>
+    <script src="~/js/wishlist/index.js"></script>
+    }

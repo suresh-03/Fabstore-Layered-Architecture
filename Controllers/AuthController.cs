@@ -10,41 +10,49 @@ using System.Security.Claims;
 
 namespace FabstoreWebApplication.Controllers;
 
+// Controller for handling authentication-related actions
 public class AuthController : Controller
     {
 
+    // Service for user-related business logic
     private readonly IUserService _userService;
+    // Logger for logging authentication events and errors
     private readonly ILogger<AuthController> _logger;
+    // Service for anti-forgery token validation
     private readonly IAntiforgery _antiforgery;
 
+    // Constructor with dependency injection
     public AuthController(ILogger<AuthController> logger, IAntiforgery antiforgery, IUserService userService)
         {
-
         _logger = logger;
         _antiforgery = antiforgery;
         _userService = userService;
-
         }
+
+    // Redirects to the SignUp page
     public IActionResult Index()
         {
         return RedirectToAction("SignUp");
         }
+
+    // Displays the SignUp view
     [HttpGet]
     public IActionResult SignUp()
         {
         return View();
         }
 
-
+    // Handles user registration via API
     [HttpPost]
     public async Task<IActionResult> SignUpAPI([FromBody] User model)
         {
         try
             {
-
+            // Validate anti-forgery token
             await _antiforgery.ValidateRequestAsync(HttpContext);
             try
                 {
+                // Validate model state
                 if (!ModelState.IsValid)
                     {
                     return ResponseFilter.HandleResponse(false, "Invalid Input", HttpStatusCode.BAD_REQUEST);
@@ -58,10 +66,9 @@ public class AuthController : Controller
                     return ResponseFilter.HandleResponse(serviceResponse);
                     }
 
+                // Registration successful, redirect to SignIn
                 return ResponseFilter.HandleResponse(true, "User registered successfully.", HttpStatusCode.CREATED, Url.Action("SignIn", "Auth"));
-
                 }
-
             catch (Exception ex)
                 {
                 _logger.LogError(ex, "An unexpected error occurred during signup.");
@@ -75,12 +82,14 @@ public class AuthController : Controller
             }
         }
 
+    // Displays the SignIn view
     [HttpGet]
     public IActionResult SignIn()
         {
         return View();
         }
 
+    // Handles user sign-in via API
     [HttpPost]
     public async Task<IActionResult> SignInAPI([FromBody] Dictionary<string, string> bodyData)
         {
@@ -99,7 +108,7 @@ public class AuthController : Controller
 
             var user = serviceResponse.Data;
 
-            // Setup claims
+            // Setup claims for authentication
             var claims = new List<Claim>
             {
                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString())
@@ -112,7 +121,7 @@ public class AuthController : Controller
                 ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
                 };
 
-            // Sign in user
+            // Sign in user with cookie authentication
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity),
@@ -132,7 +141,7 @@ public class AuthController : Controller
             }
         }
 
-
+    // Handles user signout and redirects to SignIn
     [HttpGet]
     public async Task<IActionResult> Signout()
         {
@@ -146,10 +155,5 @@ public class AuthController : Controller
             _logger.LogError(ex, "Unexpected error during signout.");
             return ResponseFilter.HandleResponse(false, "Something went wrong. Please try again later.", HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
-
         }
-
-
     }
-
-
