@@ -6,15 +6,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabstore.DataAccess
     {
+    // Repository for user-related database operations
     public class UserRepository : IUserRepository
         {
 
+        // Database context for accessing user data
         private readonly AppDbContext _context;
 
+        // Constructor with dependency injection for the database context
         public UserRepository(AppDbContext context)
             {
             _context = context;
             }
+
+        // Adds a new user to the database
         public async Task<bool> AddUserAsync(User user)
             {
             try
@@ -25,10 +30,12 @@ namespace Fabstore.DataAccess
                 }
             catch (Exception ex)
                 {
+                // Wrap and throw a custom database exception
                 throw new DatabaseException("An error occurred while adding the user.", ex);
                 }
             }
 
+        // Retrieves a user by email address
         public async Task<User> GetUserAsync(string email)
             {
             try
@@ -40,7 +47,5 @@ namespace Fabstore.DataAccess
                 throw new DatabaseException("An error occurred while retrieving the user.", ex);
                 }
             }
-
-
         }
     }

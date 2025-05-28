@@ -6,15 +6,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabstore.DataAccess;
 
+// Repository for review-related database operations
 public class ReviewRepository : IReviewRepository
     {
 
+    // Database context for accessing the application's data
     private readonly AppDbContext _context;
 
+    // Constructor that injects the application's database context
     public ReviewRepository(AppDbContext context)
         {
         _context = context;
         }
+
+    // Adds a new review to the database
     public async Task AddReviewAsync(Review review)
         {
         try
@@ -24,10 +29,12 @@ public class ReviewRepository : IReviewRepository
             }
         catch (Exception ex)
             {
+            // Wrap and throw a custom database exception
             throw new DatabaseException("An error occurred while adding the review.", ex);
             }
         }
 
+    // Retrieves a review for a specific user and product
     public async Task<Review> GetReviewByUserIdAsync(int userId, int productId)
         {
         try
@@ -35,7 +42,6 @@ public class ReviewRepository : IReviewRepository
             return await _context.Reviews
                 .Where(review => review.UserID == userId && review.ProductID == productId)
                 .FirstOrDefaultAsync();
-
             }
         catch (Exception ex)
             {
@@ -43,6 +49,7 @@ public class ReviewRepository : IReviewRepository
             }
         }
 
+    // Retrieves all reviews for a specific product
     public async Task<List<Review>> GetReviewsAsync(int productId)
         {
         try
@@ -57,6 +64,7 @@ public class ReviewRepository : IReviewRepository
             }
         }
 
+    // Updates an existing review in the database
     public async Task UpdateReviewAsync(Review review)
         {
         try
@@ -71,4 +79,3 @@ public class ReviewRepository : IReviewRepository
         }
 
     }
-

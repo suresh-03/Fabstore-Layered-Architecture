@@ -9,12 +9,18 @@ using static Fabstore.Framework.CommonEnums;
 
 namespace Fabstore.Service;
 
+// Service implementation for product-related business logic
 public class ProductService : IProductService
     {
 
+    // Repository for product data access
     private readonly IProductRepository _productRepository;
+    // Factory for creating standardized service responses
     private readonly IServiceResponseFactory _responseFactory;
+    // Memory cache for caching frequently accessed data
     private readonly IMemoryCache _memoryCache;
+
+    // Constructor with dependency injection for repository, response factory, and memory cache
     public ProductService(IProductRepository productRepository, IServiceResponseFactory responseFactory, IMemoryCache memoryCache)
         {
         _productRepository = productRepository;
@@ -22,8 +28,7 @@ public class ProductService : IProductService
         _memoryCache = memoryCache;
         }
 
-
-
+    // Retrieves a list of products, optionally filtered by category
     public async Task<IServiceResponse<List<Product>>> GetProductsAsync(string? categoy)
         {
         try
@@ -37,17 +42,18 @@ public class ProductService : IProductService
             }
         }
 
-
+    // Retrieves the details of a specific product by category and ID
     public async Task<IServiceResponse<Product>> GetProductDetailsAsync(string? category, int id)
         {
         try
             {
+            // Validate product ID
             if (id <= 0)
                 {
                 return _responseFactory.CreateResponse<Product>(false, $"Invalid product ID: {id}", ActionType.ValidationError, null);
-
                 }
 
+            // Validate category
             if (string.IsNullOrWhiteSpace(category))
                 {
                 return _responseFactory.CreateResponse<Product>(false, $"Missing category for product ID: {id}", ActionType.ValidationError, null);
@@ -56,33 +62,34 @@ public class ProductService : IProductService
             var product = await _productRepository.GetProductDetailsAsync(category, id);
             if (product == null)
                 {
+                // Product not found
                 return _responseFactory.CreateResponse<Product>(false, $"Product not found in category {category} with ID: {id}", ActionType.NotFound, null);
                 }
             return _responseFactory.CreateResponse<Product>(true, "Product Fetched Successfully", ActionType.Retrieved, product);
-
             }
         catch (Exception ex)
             {
             throw new ServiceException($"Error occurred while getting product details for category {category} and ID {id}", ex);
             }
-
         }
 
+    // Retrieves a list of products matching the search query
     public async Task<IServiceResponse<List<Product>>> GetSearchedProductsAsync(string query)
         {
         try
             {
             var products = await _productRepository.GetSearchedProductsAsync();
 
+            // Filter products based on the search query
             var matchedProducts = GetMatchedProducts(query, products);
 
             if (matchedProducts.Count == 0)
                 {
+                // No products matched the search query
                 return _responseFactory.CreateResponse<List<Product>>(true, "No products found", ActionType.Retrieved, null);
                 }
 
             return _responseFactory.CreateResponse<List<Product>>(true, "Products Fetched Successfully", ActionType.Retrieved, matchedProducts);
-
             }
         catch (Exception ex)
             {
@@ -90,6 +97,7 @@ public class ProductService : IProductService
             }
         }
 
+    // Helper method to filter products based on search tokens
     private List<Product> GetMatchedProducts(string query, List<Product> products)
         {
         string[] tokens = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -106,18 +114,18 @@ public class ProductService : IProductService
                     }
                 }
 
+            // Add product if at least 75% of tokens match
             double matchPercentage = (double)matchCount / tokens.Length * 100;
             if (matchPercentage >= 75)
                 {
                 matchedProducts.Add(product);
                 }
-            // DEBUG
-            //Console.WriteLine($"Search Controller {Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
         });
 
         return matchedProducts.ToList();
         }
 
+    // Checks if a product matches a given search token
     private bool ProductMatch(Product product, string token)
         {
         return (product.Brand?.BrandName?.Contains(token, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -128,13 +136,14 @@ public class ProductService : IProductService
                (product.Variants?.Any(v => v.Color?.Contains(token, StringComparison.OrdinalIgnoreCase) ?? false) ?? false);
         }
 
+    // Retrieves categories, using cache if available, otherwise fetches from repository
     public async Task<IServiceResponse<Dictionary<string, List<string>>>> GetCategoriesAsync()
         {
         try
             {
             List<Category> categories;
 
-            // Check if categories are cached otherwise fetch from repository
+            // Check if categories are cached, otherwise fetch from repository
             if (!_memoryCache.TryGetValue(CacheKeys.CATEGORIES, out categories))
                 {
                 categories = await _productRepository.GetCategoriesAsync();
@@ -145,40 +154,14 @@ public class ProductService : IProductService
                         SlidingExpiration = TimeSpan.FromMinutes(10)
                         };
 
+                    // Store categories in cache
                     _memoryCache.Set(CacheKeys.CATEGORIES, categories, cacheEntryOptions);
                     }
                 }
 
-            // --------------- DEBUG ------------------- //
-
-            //var categoriesDictionary = categoriesDb
-            //    .AsParallel()
-            //    .WithDegreeOfParallelism(4)
-            //    .GroupBy(c =>
-            //    {
-            //        Console.WriteLine($"Grouping category '{c.CategoryName}' with ParentID {c.ParentCategoryID} on Thread {Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
-            //        return c.ParentCategoryID;
-            //    })
-            //    .ToDictionary(
-            //        g =>
-            //        {
-            //            Console.WriteLine($"Processing group key '{g.Key}' on Thread {Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
-            //            return ((GenderType)g.Key).ToString();
-            //        },
-            //        g =>
-            //        {
-            //            var categoryNames = g.AsParallel().Select(c =>
-            //            {
-            //                Console.WriteLine($"Selecting '{c.CategoryName}' on Thread {Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
-            //                return c.CategoryName;
-            //            }).ToList();
-            //            return categoryNames;
-            //        }
-            //    );
-
-            // -----------------------------------------------------------------------//
             if (categories != null)
                 {
+                // Group categories by parent category and convert to dictionary
                 var categoriesDictionary = categories
                       .AsParallel()
                       .GroupBy(c => c.ParentCategoryID)
@@ -191,6 +174,7 @@ public class ProductService : IProductService
                 }
             else
                 {
+                // No categories found
                 return _responseFactory.CreateResponse<Dictionary<string, List<string>>>(false, "No categories found", ActionType.NotFound, null);
                 }
             }
@@ -200,4 +184,3 @@ public class ProductService : IProductService
             }
         }
     }
-

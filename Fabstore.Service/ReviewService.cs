@@ -5,29 +5,38 @@ using Fabstore.Domain.ResponseFormat;
 
 namespace Fabstore.Service;
 
+// Service implementation for review-related business logic
 public class ReviewService : IReviewService
     {
 
+    // Repository for review data access
     private readonly IReviewRepository _reviewRepository;
+    // Factory for creating standardized service responses
     private readonly IServiceResponseFactory _responseFactory;
 
+    // Constructor with dependency injection for repository and response factory
     public ReviewService(IReviewRepository reviewRepository, IServiceResponseFactory responseFactory)
         {
         _reviewRepository = reviewRepository;
         _responseFactory = responseFactory;
         }
+
+    // Adds a new review or updates an existing review for a user and product
     public async Task<IServiceResponse> AddReviewAsync(string userIdentity, int productId, int rating)
         {
         try
             {
+            // Validate rating value
             if (rating <= 0)
                 {
                 return _responseFactory.CreateResponse(false, "Rating must be greater than zero", ActionType.ValidationError);
                 }
             int userId = int.Parse(userIdentity);
+            // Check if the user has already reviewed this product
             var existingReview = await _reviewRepository.GetReviewByUserIdAsync(userId, productId);
             if (existingReview != null)
                 {
+                // Update the existing review
                 existingReview.UserID = userId;
                 existingReview.ProductID = productId;
                 existingReview.Rating = rating;
@@ -36,6 +45,7 @@ public class ReviewService : IReviewService
                 }
             else
                 {
+                // Add a new review
                 Review review = new Review
                     {
                     UserID = userId,
@@ -52,7 +62,7 @@ public class ReviewService : IReviewService
             }
         }
 
-
+    // Retrieves all reviews for a specific product
     public async Task<IServiceResponse<List<Review>>> GetReviewsAsync(int productId)
         {
         try
@@ -67,4 +77,3 @@ public class ReviewService : IReviewService
         }
 
     }
-

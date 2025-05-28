@@ -6,24 +6,27 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fabstore.DataAccess
     {
+    // Repository for product and category data access
     public class ProductRepository : IProductRepository
         {
 
+        // Database context for accessing data
         private readonly AppDbContext _context;
 
+        // Constructor with dependency injection for the database context
         public ProductRepository(AppDbContext context)
             {
             _context = context;
             }
 
-
-
+        // Retrieves a list of products, optionally filtered by category name
         public async Task<List<Product>> GetProductsAsync(string? category)
             {
             try
                 {
                 if (string.IsNullOrEmpty(category))
                     {
+                    // Return all products with related data
                     return await _context.Products
                              .Include(p => p.Brand)
                              .Include(p => p.Category)
@@ -31,11 +34,10 @@ namespace Fabstore.DataAccess
                                  .ThenInclude(v => v.Images)
                              .Include(p => p.Reviews)
                              .ToListAsync();
-
-
                     }
                 else
                     {
+                    // Return products filtered by category name with related data
                     return await _context.Products
                              .Include(p => p.Brand)
                              .Include(p => p.Category)
@@ -43,19 +45,21 @@ namespace Fabstore.DataAccess
                                  .ThenInclude(v => v.Images)
                              .Include(p => p.Reviews)
                              .Where(p => p.Category.CategoryName == category).ToListAsync();
-
                     }
                 }
             catch (Exception ex)
                 {
+                // Wrap and throw a custom database exception
                 throw new DatabaseException("An error occurred while retrieving products.", ex);
                 }
             }
 
+        // Retrieves the details of a specific product by ID, optionally filtered by category name
         public async Task<Product> GetProductDetailsAsync(string? category, int id)
             {
             try
                 {
+                // Build query for product details with related data
                 var query = _context.Products
                     .Include(p => p.Brand)
                     .Include(p => p.Category)
@@ -66,6 +70,7 @@ namespace Fabstore.DataAccess
 
                 if (!string.IsNullOrEmpty(category))
                     {
+                    // Further filter by category name if provided
                     query = query.Where(p => p.Category.CategoryName == category);
                     }
 
@@ -77,6 +82,7 @@ namespace Fabstore.DataAccess
                 }
             }
 
+        // Retrieves all products with related brand, category, variant, and review data
         public async Task<List<Product>> GetSearchedProductsAsync()
             {
             try
@@ -94,6 +100,7 @@ namespace Fabstore.DataAccess
                 }
             }
 
+        // Retrieves categories that have a parent category, including their subcategories
         public async Task<List<Category>> GetCategoriesAsync()
             {
             try
@@ -108,7 +115,5 @@ namespace Fabstore.DataAccess
                 throw new DatabaseException("An error occurred while retrieving categories.", ex);
                 }
             }
-
-
         }
     }
