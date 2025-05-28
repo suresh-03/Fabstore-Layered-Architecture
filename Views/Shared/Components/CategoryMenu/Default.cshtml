@@ -3,13 +3,13 @@
 <!-- Check if the model (categories dictionary) is not null -->
 @if (Model != null)
     {
-    // Loop through each category group (e.g., by gender or parent category)
+    <!-- Loop through each category group (e.g., by gender or parent category)-->
     foreach (var categoryGroup in Model)
         {
-        // Display the group name as a heading
+        <!-- Display the group name as a heading-->
         <h3>@categoryGroup.Key.ToUpper()</h3>
         <ul id="menu-items">
-            // Loop through each subcategory in the group
+            <!-- Loop through each subcategory in the group -->
             @foreach (var subCategory in categoryGroup.Value)
                 {
                 <li>

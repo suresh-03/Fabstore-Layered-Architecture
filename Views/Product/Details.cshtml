@@ -4,7 +4,7 @@
 @using System.Security.Claims
 
 @{
-    // =================== PAGE SETUP & PRIMARY PRODUCT DATA ===================
+    <!-- =================== PAGE SETUP & PRIMARY PRODUCT DATA =================== -->
     ViewData["Title"] = "Product Details";
     var primaryVariant = Model.Variants?.FirstOrDefault();
     var primaryImage = primaryVariant?.Images?.FirstOrDefault(i => i.IsPrimary)
@@ -135,7 +135,6 @@
     @if (User.Identity != null && User.Identity.IsAuthenticated)
         {
         <script type="text/javascript">
-            // Cart and Wishlist existence checks for authenticated users
             handleCartExists("/api/cart/exists",@primaryVariantId);
             handleRemoveFromCart("/api/cart/remove");
             handleItemExistsInWishlist("/api/wishlist/exists",@primaryVariantId);

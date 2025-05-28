@@ -34,7 +34,7 @@
 <div id="cart-container">
     @foreach (var item in Model)
         {
-        // Extract product and variant details for display
+        <!-- Extract product and variant details for display -->
         var productPrice = item.Variant?.Price;
         var imageUrl = item.Variant?.Images?.Where(i => i.VariantID == item.VariantID).Select(i => i.ImageUrl).FirstOrDefault();
         var productName = StringHelper.CapitalizeEachWord(item.Variant?.Product?.ProductName ?? "Product Name");
